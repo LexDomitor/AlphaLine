@@ -7,15 +7,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;800&display=swap');
         :root { --bg: #080808; --accent: #2a2a2a; --text: #fff; --text-dim: #888; }
+        
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
 
         /* --- LOADER --- */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; pointer-events: none; }
         .loader-content { text-align: center; width: 280px; }
         .progress-track { width: 100%; height: 2px; background: #111; margin-top: 20px; position: relative; }
         #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s ease; position: absolute; top:0; left:0; }
 
-        /* --- UI BARS --- */
+        /* --- UI BARS (STATIC) --- */
         .ui-bar { position: fixed; left: 0; width: 100%; background: rgba(25, 25, 25, 0.98); backdrop-filter: blur(20px); z-index: 1000; transition: transform 0.6s ease, opacity 0.6s; border: 1px solid #333; box-sizing: border-box; }
         .top-nav { top: 0; height: 90px; padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; border-width: 0 0 1px 0; }
         .bottom-nav { bottom: 0; height: 60px; padding: 0 3rem; border-width: 1px 0 0 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
@@ -28,41 +29,33 @@
             position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; 
             background-color: var(--bg);
             background-image: 
-                radial-gradient(circle, #222 1.5px, transparent 1.5px), /* The + Dots */
-                linear-gradient(to right, #111 1px, transparent 1px),   /* Vertical Lines */
-                linear-gradient(to bottom, #111 1px, transparent 1px); /* Horizontal Lines */
+                radial-gradient(circle, #222 1px, transparent 1px),
+                linear-gradient(to right, #111 1px, transparent 1px),
+                linear-gradient(to bottom, #111 1px, transparent 1px);
             background-size: 100px 100px, 100px 100px, 100px 100px;
             background-position: -1px -1px;
+            will-change: transform;
         }
 
         /* --- NODES --- */
         .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; display: flex; flex-direction: column; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .handle { height: 18px; background: #222; cursor: grab; border-bottom: 1px solid #333; flex-shrink: 0; }
+        .handle { height: 20px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #333; flex-shrink: 0; }
         .node-content { padding: 12px; display: flex; flex-grow: 1; flex-direction: column; gap: 8px; }
         input, textarea { background: #000; border: 1px solid #222; color: #fff; font-size: 0.75rem; padding: 8px; outline: none; width: 100%; box-sizing: border-box; }
 
         /* --- CONTAINER SPECIFIC --- */
-        .node-container { width: 500px; height: auto; min-height: 300px; }
-        .container-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; 
-            gap: 12px; padding: 12px; flex-grow: 1; position: relative;
-        }
-        /* The drop-zone overlays */
+        .node-container { width: 500px; height: auto; min-height: 320px; }
+        .container-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; gap: 12px; padding: 12px; flex-grow: 1; position: relative; }
         .quad-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; gap: 12px; padding: 12px; pointer-events: none; box-sizing: border-box; }
         .quad { border: 1px dashed rgba(255,255,255,0.05); }
         .quad.active { background: rgba(255,255,255,0.15); border: 1px solid #fff; }
+        .node.snapped { position: relative !important; top: auto !important; left: auto !important; width: 100% !important; height: 100% !important; box-shadow: none; border-color: #444; }
 
-        /* Snapped Node Overrides */
-        .node.snapped { position: relative !important; top: auto !important; left: auto !important; width: 100% !important; height: 100% !important; box-shadow: none; }
-
-        .container-footer { 
-            height: 30px; border-top: 1px solid #333; display: flex; align-items: center; 
-            justify-content: center; cursor: pointer; font-size: 0.6rem; color: #666; letter-spacing: 2px;
-        }
+        .container-footer { height: 32px; border-top: 1px solid #333; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.6rem; color: #666; letter-spacing: 2px; }
         .container-footer:hover { background: #1a1a1a; color: #fff; }
 
         /* --- TRASH & TOOLS --- */
-        #trash-zone { position: fixed; bottom: 80px; left: 20px; width: 60px; height: 60px; background: rgba(255,50,50,0.1); border: 2px dashed #ff3232; border-radius: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 1100; }
+        #trash-zone { position: fixed; bottom: 80px; left: 20px; width: 60px; height: 60px; background: rgba(255,50,50,0.1); border: 2px dashed #ff3232; border-radius: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 1100; font-size: 1.5rem; }
         .is-dragging #trash-zone { opacity: 1; }
         #trash-zone.active { background: rgba(255,50,50,0.4); color: #fff; transform: scale(1.1); }
 
@@ -75,7 +68,7 @@
 
     <div id="loader">
         <div class="loader-content">
-            <div id="loader-msg" style="font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase;">Initializing Plane</div>
+            <div id="loader-msg" style="font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase;">Initializing</div>
             <div class="progress-track"><div id="progress-bar"></div></div>
         </div>
     </div>
@@ -85,24 +78,24 @@
     <nav class="ui-bar top-nav">
         <div class="brand-block">
             <div style="font-weight:800; letter-spacing:4px;">ALPHALINE <span style="font-weight:300; color:var(--text-dim);">| CREATION PLANE</span></div>
-            <div onclick="triggerExitSequence()" style="cursor:pointer; margin-top:5px; font-size: 0.8rem;">← BACK</div>
+            <div onclick="triggerExitSequence()" style="cursor:pointer; margin-top:5px; font-size: 0.7rem; letter-spacing:2px;">← EXIT</div>
         </div>
         <div id="active-name" style="letter-spacing:6px; font-size:0.75rem; text-transform:uppercase; font-weight:300;">UNIVERSE</div>
         <div style="width:150px"></div>
     </nav>
 
     <footer class="ui-bar bottom-nav">
-        <div id="footer-date" style="font-size: 0.65rem; color: #888;">JAN 21 2026</div>
-        <div style="font-size: 0.6rem; color: #888; letter-spacing: 2px;">© 2026 ALPHALINE SYSTEMS</div>
+        <div style="font-size: 0.65rem; color: #888;">JAN 21 2026</div>
+        <div style="font-size: 0.6rem; color: #888; letter-spacing: 2px;">© ALPHALINE SYSTEMS</div>
         <div id="coord-display" style="font-size: 0.65rem; color: #888; text-align: right;">0, 0</div>
     </footer>
 
     <aside class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')">C</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')">T</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')">I</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')" title="New Container">C</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')" title="New Text Node">T</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')" title="New Image Node">I</div>
         <div style="height:1px; width:20px; background:#333;"></div>
-        <div class="tool-item" onclick="recenter()" style="cursor:pointer; color:#888;">0,0</div>
+        <div class="tool-item" onclick="recenter()" style="cursor:pointer; color:#888; border-style:dashed;" title="Recenter to 0,0">0,0</div>
     </aside>
 
     <div id="viewport"><div id="world"></div></div>
@@ -113,28 +106,41 @@
         const trash = document.getElementById('trash-zone');
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
+        
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
+        
         let worldPos = activeUniverse?.camera || { x: -4500, y: -4500 };
+        let scale = activeUniverse?.scale || 1;
         let childRegistry = activeUniverse?.childRegistry || {};
 
         window.onload = () => {
             if(activeUniverse) document.getElementById('active-name').innerText = activeUniverse.name;
             updateWorld();
             const bar = document.getElementById('progress-bar');
-            setTimeout(() => { bar.style.width = '100%'; }, 100);
+            const msg = document.getElementById('loader-msg');
+            
+            setTimeout(() => { bar.style.width = '40%'; msg.innerText = "Accessing Memory Banks"; }, 500);
+            setTimeout(() => { bar.style.width = '100%'; msg.innerText = `Transporting to ${activeUniverse?.name || 'Universe'}`; }, 1800);
             setTimeout(() => { 
                 document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => { 
                     document.getElementById('loader').style.display = 'none';
                     if(activeUniverse?.timeline) activeUniverse.timeline.forEach(t => createNode(t));
                 }, 1000);
-            }, 2500);
+            }, 3500);
         };
 
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
-        function recenter() { worldPos = { x: -4500, y: -4500 }; updateWorld(); }
+        
+        function updateWorld() {
+            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px) scale(${scale})`;
+            const displayX = Math.round((-worldPos.x - 4500 * scale) / scale);
+            const displayY = Math.round((-worldPos.y - 4500 * scale) / scale);
+            document.getElementById('coord-display').innerText = `${displayX}, ${displayY} | ${Math.round(scale * 100)}%`;
+        }
 
+        // --- PANNING ---
         let isPanning = false, startX, startY;
         viewport.onmousedown = (e) => {
             if(e.target.id !== 'viewport' && e.target.id !== 'world') return;
@@ -146,16 +152,39 @@
         };
         window.onmouseup = () => { isPanning = false; document.body.classList.remove('is-panning'); sync(); };
 
-        function updateWorld() {
-            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-            document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x-4500)}, ${Math.round(-worldPos.y-4500)}`;
-        }
+        // --- ZOOM (WHEEL & PINCH) ---
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.0015;
+            const delta = -e.deltaY;
+            const oldScale = scale;
+            scale = Math.min(Math.max(0.2, scale + delta * zoomSpeed), 2);
+
+            const rect = viewport.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const worldMouseX = (mouseX - worldPos.x) / oldScale;
+            const worldMouseY = (mouseY - worldPos.y) / oldScale;
+
+            worldPos.x = mouseX - worldMouseX * scale;
+            worldPos.y = mouseY * worldMouseY * scale;
+
+            updateWorld();
+            sync();
+        }, { passive: false });
+
+        function recenter() { scale = 1; worldPos = { x: -4500, y: -4500 }; updateWorld(); }
 
         viewport.ondragover = e => e.preventDefault();
         viewport.ondrop = e => {
             e.preventDefault();
             const type = e.dataTransfer.getData('nodeType');
-            if(type) createNode({ type, x: e.clientX - worldPos.x - 110, y: e.clientY - worldPos.y - 20 });
+            if(type) {
+                const rect = viewport.getBoundingClientRect();
+                const x = (e.clientX - rect.left - worldPos.x) / scale - 110;
+                const y = (e.clientY - rect.top - worldPos.y) / scale - 20;
+                createNode({ type, x, y });
+            }
         };
 
         function createNode(data) {
@@ -164,14 +193,12 @@
             node.className = `node node-${data.type}`;
             node.dataset.id = id; node.dataset.type = data.type;
             
-            // Positioning: if it's already snapped to a parent, handle differently
             if (!data.parent) {
                 node.style.left = data.x + 'px'; node.style.top = data.y + 'px';
                 world.appendChild(node);
             }
 
             let html = `<div class="handle"></div>`;
-            
             if(data.type === 'container') {
                 html += `<div class="node-content"><input class="node-title" placeholder="Frame Title" value="${data.title||''}" oninput="sync()"></div>
                          <div class="container-grid">
@@ -183,11 +210,10 @@
                          <textarea placeholder="Content..." rows="4" oninput="sync()">${data.body||''}</textarea></div>`;
             } else if(data.type === 'image') {
                 html += `<div class="node-content"><div class="img-preview" style="display:${data.url?'block':'none'}">${data.url?`<img src="${data.url}" style="width:100%">`:''}</div>
-                         <button onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}; width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; cursor:pointer;">UPLOAD</button>
+                         <button onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}; width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; cursor:pointer;">UPLOAD IMAGE</button>
                          <input type="file" style="display:none" onchange="handleImg(this)">
                          <input class="node-title" placeholder="Caption..." value="${data.title||''}" oninput="sync()"></div>`;
             }
-            
             node.innerHTML = html;
             
             if(data.parent) {
@@ -195,15 +221,14 @@
                 const p = document.querySelector(`[data-id="${data.parent}"] .container-grid`);
                 if(p) p.appendChild(node);
             }
-
             makeDraggable(node);
+            sync();
         }
 
         function expandRows(btn) {
             const grid = btn.previousElementSibling;
-            const quadLayer = grid.querySelector('.quad-layer');
-            // Add two new cells to the logic
-            quadLayer.innerHTML += `<div class="quad"></div><div class="quad"></div>`;
+            const ql = grid.querySelector('.quad-layer');
+            ql.innerHTML += `<div class="quad"></div><div class="quad"></div>`;
             sync();
         }
 
@@ -224,42 +249,28 @@
             handle.onmousedown = (e) => {
                 e.stopPropagation();
                 if(el.classList.contains('snapped')) {
-                    // Pull out of container to drag freely
                     const rect = el.getBoundingClientRect();
                     el.classList.remove('snapped');
                     world.appendChild(el);
-                    el.style.left = (rect.left - worldPos.x) + 'px';
-                    el.style.top = (rect.top - worldPos.y) + 'px';
-                    // Unregister from childRegistry
+                    el.style.left = (rect.left - worldPos.x) / scale + 'px';
+                    el.style.top = (rect.top - worldPos.y) / scale + 'px';
                     Object.keys(childRegistry).forEach(k => childRegistry[k] = childRegistry[k].filter(i => i !== el.dataset.id));
                 }
-
                 document.body.classList.add('is-dragging');
-                let p3 = e.clientX, p4 = e.clientY, orig = {x: el.offsetLeft, y: el.offsetTop};
-
+                let p3 = e.clientX, p4 = e.clientY;
                 document.onmousemove = (e) => {
-                    let p1 = p3 - e.clientX, p2 = p4 - e.clientY;
+                    let p1 = (p3 - e.clientX) / scale, p2 = (p4 - e.clientY) / scale;
                     p3 = e.clientX; p4 = e.clientY;
                     el.style.left = (el.offsetLeft - p1) + "px";
                     el.style.top = (el.offsetTop - p2) + "px";
-
-                    if(childRegistry[el.dataset.id]) {
-                        childRegistry[el.dataset.id].forEach(cid => {
-                            const c = document.querySelector(`[data-id="${cid}"]`);
-                            if(c) { c.style.left = (c.offsetLeft - p1) + "px"; c.style.top = (c.offsetTop - p2) + "px"; }
-                        });
-                    }
                     checkQuads(el);
                 };
-
                 document.onmouseup = () => {
                     document.onmousemove = null; document.body.classList.remove('is-dragging');
                     const t = trash.getBoundingClientRect();
                     const r = el.getBoundingClientRect();
-                    if(r.left < t.right && r.bottom > t.top) {
-                        if(confirm("Delete node?")) { el.remove(); }
-                        else { el.style.left = orig.x+'px'; el.style.top = orig.y+'px'; }
-                    } else { snap(el); }
+                    if(r.left < t.right && r.bottom > t.top) { if(confirm("Delete node?")) el.remove(); } 
+                    else { snap(el); }
                     sync();
                 };
             };
@@ -273,12 +284,11 @@
                 const cr = c.getBoundingClientRect();
                 if(ex > cr.left && ex < cr.right && ey > cr.top && ey < cr.bottom) {
                     const quads = c.querySelectorAll('.quad');
-                    // Find which quadrant based on mouse pos relative to grid cells
                     const gridRect = c.querySelector('.container-grid').getBoundingClientRect();
-                    const localX = ex - gridRect.left;
-                    const localY = ey - gridRect.top;
+                    const localX = (ex - gridRect.left);
+                    const localY = (ey - gridRect.top);
                     const col = localX > gridRect.width / 2 ? 1 : 0;
-                    const row = Math.floor(localY / 200); // 200 is our row height
+                    const row = Math.floor(localY / (212 * scale)); 
                     const idx = (row * 2) + col;
                     if(quads[idx]) quads[idx].classList.add('active');
                 }
@@ -292,7 +302,6 @@
                 const grid = container.querySelector('.container-grid');
                 el.classList.add('snapped');
                 grid.appendChild(el); 
-                
                 const cId = container.dataset.id;
                 if(!childRegistry[cId]) childRegistry[cId] = [];
                 childRegistry[cId].push(el.dataset.id);
@@ -317,15 +326,20 @@
                 };
             });
             activeUniverse.camera = worldPos;
+            activeUniverse.scale = scale;
             activeUniverse.childRegistry = childRegistry;
             localStorage.setItem('alphaline_universes', JSON.stringify(universes));
         }
 
         function triggerExitSequence() {
             sync();
-            document.getElementById('loader').style.display = 'flex';
-            document.getElementById('loader').style.opacity = '1';
-            setTimeout(() => { window.location.href = 'universes.html'; }, 1000);
+            const l = document.getElementById('loader');
+            const m = document.getElementById('loader-msg');
+            const b = document.getElementById('progress-bar');
+            l.style.display = 'flex'; l.style.opacity = '1';
+            m.innerText = "Syncing Plane Data...";
+            b.style.width = '100%';
+            setTimeout(() => { window.location.href = 'universes.html'; }, 1500);
         }
     </script>
 </body>
