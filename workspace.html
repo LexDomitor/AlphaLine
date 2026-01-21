@@ -40,7 +40,7 @@
         /* --- THE RETRACT STATE --- */
         .focused-mode .top-nav { transform: translateY(-100%); }
         .focused-mode .tool-dock { transform: translateX(-100%); }
-        .focused-mode #canvas { margin-left: 0; width: 100vw; height: 100vh; }
+        .focused-mode #canvas { margin-left: 0; width: 100vw; height: 100vh; margin-top: 0; }
 
         /* --- Workspace Canvas --- */
         #canvas {
@@ -86,6 +86,13 @@
             background: #111; color: white;
         }
 
+        /* Return Arrow / Exit Logic */
+        .exit-btn {
+            color: var(--text-dim); text-transform: uppercase; font-size: 0.65rem; 
+            letter-spacing: 2px; cursor: pointer; transition: 0.3s;
+        }
+        .exit-btn:hover { color: #fff; }
+
         /* Trigger button to bring UI back if needed */
         #ui-restore {
             position: fixed; bottom: 20px; right: 20px; width: 30px; height: 30px;
@@ -107,6 +114,7 @@
     <nav class="top-nav">
         <div style="font-weight:800; letter-spacing:2px;">ALPHALINE <span style="color:var(--text-dim); font-weight:300;">| Creation Plane</span></div>
         <div id="active-name" style="font-weight:300; text-transform:uppercase; letter-spacing:2px; font-size:0.85rem;">---</div>
+        <div class="exit-btn" onclick="exitWorkspace()">Return to Archive</div>
     </nav>
 
     <div class="tool-dock">
@@ -121,6 +129,7 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const activeUniverse = JSON.parse(localStorage.getItem('alphaline_universes') || "[]").find(u => u.id == params.get('id'));
+        
         if (activeUniverse) {
             document.getElementById('active-name').innerText = activeUniverse.name;
             document.getElementById('loader-msg').innerText = `Transporting to ${activeUniverse.name}`;
@@ -135,11 +144,25 @@
                 document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loader').style.display = 'none';
-                    // Trigger the UI retraction
+                    
+                    // Signal the Master Shell to hide its header/footer 
+                    // This covers the case where the user refreshes inside the workspace
+                    window.parent.postMessage('RETRACT_FRAME', '*');
+                    
+                    // Trigger the Workspace internal UI retraction
                     document.body.classList.add('focused-mode');
                 }, 1000);
             }, 1800);
         };
+
+        // --- EXIT LOGIC ---
+        function exitWorkspace() {
+            // Signal the Master Shell to restore its header/footer
+            window.parent.postMessage('RESTORE_FRAME', '*');
+            
+            // Navigate back to the universe archive
+            window.location.href = 'universes.html';
+        }
 
         function handleDrop(e) {
             e.preventDefault();
