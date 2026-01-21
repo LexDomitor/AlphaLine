@@ -10,6 +10,7 @@
             --text-main: #ffffff;
             --text-dim: #a0a0a0;
             --accent-gray: #333333;
+            --modal-bg: #1a1a1a;
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -18,118 +19,73 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden; 
         }
 
-        /* --- Header --- */
-        header {
-            width: 100%;
-            padding: 1.5rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--accent-gray);
-            z-index: 10;
-        }
+        /* --- Header & Footer --- */
+        header, footer { background: var(--bg-color); border-color: var(--accent-gray); border-style: solid; padding: 1.5rem 5%; z-index: 5; }
+        header { border-width: 0 0 1px 0; display: flex; justify-content: space-between; align-items: center; }
+        footer { border-width: 1px 0 0 0; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-            cursor: pointer;
-        }
-
+        .logo { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; cursor: pointer; }
         nav { display: flex; gap: 1rem; }
+        .nav-link, .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; text-transform: uppercase; cursor: pointer; transition: var(--transition); }
+        .nav-link:hover, .footer-link:hover { color: var(--text-main); }
+        
+        /* --- Content Area --- */
+        main { flex: 1; position: relative; width: 100%; }
+        #content-frame { width: 100%; height: 100%; border: none; background: transparent; }
 
-        .nav-link {
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: var(--transition);
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        .nav-link:hover {
-            background-color: var(--accent-gray);
-            color: var(--text-main);
-        }
-
-        /* --- Main Content (The Window) --- */
-        main {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            background: var(--bg-color);
-        }
-
-        #content-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            background: transparent;
-        }
-
-        /* --- Footer --- */
-        footer {
-            width: 100%;
-            padding: 1.5rem 5%;
-            border-top: 1px solid var(--accent-gray);
-            display: flex;
-            flex-direction: column;
+        /* --- THE MODAL SYSTEM --- */
+        #modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none; /* Hidden by default */
+            justify-content: center;
             align-items: center;
-            gap: 1.2rem;
-            background: var(--bg-color);
+            z-index: 1000; /* Above everything */
+            backdrop-filter: blur(5px);
         }
 
-        .footer-nav { display: flex; gap: 2.5rem; }
+        .modal-panel {
+            background: var(--modal-bg);
+            width: 90%;
+            max-width: 600px;
+            padding: 2.5rem;
+            border: 1px solid var(--accent-gray);
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
 
-        .footer-link {
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
             color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
             transition: var(--transition);
         }
+        .modal-close:hover { color: var(--text-main); transform: rotate(90deg); }
 
-        .footer-link:hover { color: var(--text-main); }
+        #modal-content h2 { margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; }
+        #modal-content p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; }
 
-        .footer-data-grid {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: end;
-            font-size: 0.65rem;
-            color: var(--text-dim);
-            letter-spacing: 0.03rem;
-            font-variant-numeric: tabular-nums; 
-        }
-
-        .last-updated { grid-column: 1; text-align: left; line-height: 1.4; }
-        .copyright { grid-column: 2; text-align: center; text-transform: uppercase; letter-spacing: 0.15rem; }
-        .user-info { grid-column: 3; text-align: right; line-height: 1.4; }
+        .footer-data-grid { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; font-size: 0.65rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+        .last-updated { text-align: left; }
+        .copyright { text-align: center; letter-spacing: 0.15rem; }
+        .user-info { text-align: right; }
 
         @media (max-width: 850px) {
-            header { flex-direction: column; gap: 1rem; padding: 1rem; }
-            .footer-data-grid {
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-                align-items: center;
-            }
-            .last-updated, .user-info { text-align: center; }
-            .footer-nav { gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
+            .footer-data-grid { display: flex; flex-direction: column; gap: 1rem; text-align: center; align-items: center; }
+            .user-info { text-align: center; }
         }
     </style>
 </head>
@@ -143,86 +99,87 @@
         </nav>
     </header>
 
-    <main>
-        <iframe id="content-frame" src="home.html" title="Content Window"></iframe>
+    <main id="main-content">
+        <iframe id="content-frame" src="home.html"></iframe>
     </main>
+
+    <div id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-panel" onclick="event.stopPropagation()">
+            <div class="modal-close" onclick="closeModal()">×</div>
+            <div id="modal-content">
+                </div>
+        </div>
+    </div>
 
     <footer>
         <div class="footer-nav">
-            <a href="#" class="footer-link">About Us</a>
-            <a href="#" class="footer-link">Contact Us</a>
-            <a href="#" class="footer-link">Changelog</a>
+            <a class="footer-link" onclick="openModal('about')">About Us</a>
+            <a class="footer-link" onclick="openModal('contact')">Contact Us</a>
+            <a class="footer-link" onclick="openModal('changelog')">Changelog</a>
         </div>
-
         <div class="footer-data-grid">
-            <div class="last-updated" id="last-updated">SYNCING...</div>
+            <div id="last-updated">SYNCING...</div>
             <div class="copyright">©2026 Lex Domitor</div>
-            <div class="user-info" id="user-info">LOCALIZING...</div>
+            <div id="user-info">LOCALIZING...</div>
         </div>
     </footer>
 
     <script>
-        // Navigation Control
-        function handleNav(page) {
-            document.getElementById('content-frame').src = page + '.html';
+        const modalData = {
+            about: {
+                title: "About AlphaLine",
+                text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers. We focus on scale, alignment, and minimalist utility."
+            },
+            contact: {
+                title: "Contact Us",
+                text: "Reach out to the development team at support@alphaline.dev. Technical support is available for all Guest and Registered users."
+            },
+            changelog: {
+                title: "Changelog",
+                text: "v1.2.0: Implemented Universal Modal System.<br>v1.1.1: Precision clock sync and PST offsets.<br>v1.0.0: Initial Alpha Launch."
+            }
+        };
+
+        function openModal(type) {
+            const data = modalData[type];
+            document.getElementById('modal-content').innerHTML = `<h2>${data.title}</h2><p>${data.text}</p>`;
+            document.getElementById('modal-overlay').style.display = 'flex';
+            // Disable background clicking/interaction
+            document.getElementById('main-content').style.pointerEvents = 'none';
         }
 
-        // PST Offset Calculation
+        function closeModal(e) {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('main-content').style.pointerEvents = 'auto';
+        }
+
+        function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
+
+        // --- Time Functions ---
         function getPSTOffset() {
             const now = new Date();
             const pstString = now.toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour12: false});
             const pstDate = new Date(pstString);
             const diff = Math.round((pstDate - now) / 3600000);
-            const sign = diff >= 0 ? "+" : "";
-            return `PST ${sign}${diff}H`;
+            return `PST ${diff >= 0 ? "+" : ""}${diff}H`;
         }
 
-        // Load Version Data
         async function loadLastUpdated() {
             try {
                 const response = await fetch('version.json');
-                if (!response.ok) throw new Error('File not found');
                 const data = await response.json();
                 const bTime = new Date(data.lastUpdated);
-                
-                const timeOps = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
-                const dateOps = { month: 'long', day: 'numeric', year: 'numeric' };
-                
-                document.getElementById('last-updated').innerHTML = `
-                    LAST UPDATED<br>
-                    ${bTime.toLocaleTimeString(undefined, timeOps).toUpperCase()} | ${bTime.toLocaleDateString(undefined, dateOps).toUpperCase()}
-                `;
-            } catch (e) {
-                document.getElementById('last-updated').innerHTML = "LAST UPDATED<br>OFFLINE";
-            }
+                document.getElementById('last-updated').innerHTML = `LAST UPDATED<br>${bTime.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true}).toUpperCase()} | ${bTime.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}).toUpperCase()}`;
+            } catch (e) { document.getElementById('last-updated').innerHTML = "LAST UPDATED<br>OFFLINE"; }
         }
 
-        // Live Clock Update
         function updateLiveClock() {
             const now = new Date();
-            const timeOps = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
-            const dateOps = { month: 'long', day: 'numeric', year: 'numeric' };
-            
-            // Safe Zone Extraction
-            let tzName = "UTC";
-            try {
-                const parts = new Intl.DateTimeFormat(undefined, {timeZoneName: 'short'}).formatToParts(now);
-                tzName = parts.find(p => p.type === 'timeZoneName').value;
-            } catch(e) {}
-
+            const tzName = Intl.DateTimeFormat(undefined, {timeZoneName: 'short'}).formatToParts(now).find(p => p.type === 'timeZoneName').value;
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
-            const pstRel = getPSTOffset();
-
-            const timeStr = now.toLocaleTimeString(undefined, timeOps).toUpperCase();
-            const dateStr = now.toLocaleDateString(undefined, dateOps).toUpperCase();
-
-            document.getElementById('user-info').innerHTML = `
-                ${region.toUpperCase()} (${tzName}) [${pstRel}]<br>
-                ${timeStr} | ${dateStr}
-            `;
+            document.getElementById('user-info').innerHTML = `${region.toUpperCase()} (${tzName}) [${getPSTOffset()}]<br>${now.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true}).toUpperCase()} | ${now.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
 
-        // Run
         updateLiveClock();
         setInterval(updateLiveClock, 1000);
         loadLastUpdated();
