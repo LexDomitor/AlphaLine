@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             --bg-color: #0f0f0f;
@@ -9,21 +10,27 @@
             --accent: #333;
             --text: #ffffff;
             --text-dim: #888;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* --- Sleek Scrollbar --- */
-        ::-webkit-scrollbar { width: 6px; }
+        /* --- Sleek Scrollbar (The Custom Styling) --- */
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { 
+            background: #222; 
+            border-radius: 4px; 
+            border: 2px solid var(--bg-color);
+        }
         ::-webkit-scrollbar-thumb:hover { background: #444; }
 
         body {
             background: var(--bg-color);
             color: var(--text);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 3rem 5%;
             margin: 0;
-            overflow-y: overlay; /* Keeps layout stable */
+            /* Using overlay ensures the scrollbar doesn't "push" the content when it appears */
+            overflow-y: overlay; 
         }
 
         .header-row {
@@ -35,29 +42,31 @@
             padding-bottom: 1.5rem;
         }
 
+        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; margin: 0; }
+
         .universe-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
         }
 
         .universe-card {
             background: var(--card-bg);
             border: 1px solid var(--accent);
-            padding: 2rem;
+            padding: 1.5rem;
             position: relative;
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 1.2rem;
+            transition: var(--transition);
         }
 
-        .universe-card:hover { border-color: #666; }
+        .universe-card:hover { border-color: #666; background: #1a1a1a; }
 
         /* --- Circular Image Mask --- */
         .universe-thumb {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background: #222;
             object-fit: cover;
@@ -66,37 +75,61 @@
         }
 
         .card-content { flex-grow: 1; }
-        .universe-name { font-size: 1.1rem; margin-bottom: 0.4rem; font-weight: 500; }
         
+        .universe-name { 
+            font-size: 1.1rem; 
+            margin-bottom: 0.5rem; 
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
+        
+        /* Multi-line metadata layout */
         .universe-meta { 
             font-size: 0.65rem; 
             color: var(--text-dim); 
             text-transform: uppercase; 
             letter-spacing: 1px; 
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
+        .last-edited {
+            display: block;
+            margin-top: 4px;
+            color: #555;
+            font-weight: 700;
+        }
+
+        /* Edit Button (Visible on Hover) */
         .edit-btn {
             position: absolute;
             top: 1rem;
             right: 1rem;
-            background: none;
+            background: transparent;
             border: 1px solid var(--accent);
             color: var(--text-dim);
             font-size: 0.6rem;
-            padding: 4px 8px;
+            padding: 4px 10px;
             cursor: pointer;
             opacity: 0;
-            transition: 0.2s;
+            transition: var(--transition);
+            font-family: inherit;
         }
         .universe-card:hover .edit-btn { opacity: 1; }
-        .edit-btn:hover { color: white; border-color: white; }
+        .edit-btn:hover { border-color: #fff; color: #fff; }
 
         .btn-new {
-            background: white; color: black; border: none;
-            padding: 0.8rem 1.5rem; text-transform: uppercase;
-            font-size: 0.7rem; font-weight: 700; cursor: pointer; letter-spacing: 1.5px;
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            transition: var(--transition);
         }
+        .btn-new:hover { background: #ccc; }
     </style>
 </head>
 <body>
@@ -106,7 +139,8 @@
         <button id="add-btn" class="btn-new" onclick="createNewUniverse()">+ New Canon</button>
     </div>
 
-    <div id="universe-grid" class="universe-grid"></div>
+    <div id="universe-grid" class="universe-grid">
+        </div>
 
     <script>
         const STORAGE_KEY = 'alphaline_universes';
@@ -117,18 +151,19 @@
             const rawData = localStorage.getItem(STORAGE_KEY);
             if (rawData) {
                 const parsed = JSON.parse(rawData);
-                // --- Legacy Data Migration ---
+                // --- Legacy Migration Logic ---
+                // This ensures old universes get new fields (Image, Last Edited) without breaking
                 universes = parsed.map(u => ({
                     id: u.id,
                     name: u.name || "Untitled Universe",
                     author: u.author || "Guest",
                     image: u.image || "https://via.placeholder.com/150",
                     created: u.created || "Unknown Date",
-                    lastEdited: u.lastEdited || u.created || "Unknown Date"
+                    lastEdited: u.lastEdited || u.created || "Never"
                 }));
-                syncToStorage(); // Update the cookie with missing defaults
-                renderGrid();
+                syncToStorage(); // Save migrated data back to cookie
             }
+            renderGrid();
         }
 
         function syncToStorage() {
@@ -138,10 +173,13 @@
         }
 
         function createNewUniverse() {
-            const name = prompt("Universe Name:");
+            const name = prompt("Universe Identity / Name:");
             if (!name) return;
-            const img = prompt("Image URL (leave blank for default):");
-            const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
+            
+            const img = prompt("Thumbnail URL (Leave blank for default):");
+            const date = new Date().toLocaleDateString(undefined, { 
+                year: 'numeric', month: 'short', day: 'numeric' 
+            }).toUpperCase();
 
             const newEntry = {
                 id: Date.now(),
@@ -159,13 +197,16 @@
 
         function editAttributes(id) {
             const u = universes.find(item => item.id === id);
-            const newName = prompt("Edit Name:", u.name);
-            const newImg = prompt("Edit Image URL:", u.image);
+            const newName = prompt("Edit Universe Name:", u.name);
+            const newImg = prompt("Edit Thumbnail URL:", u.image);
             
-            if (newName) {
-                u.name = newName;
-                u.image = newImg;
-                u.lastEdited = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
+            if (newName !== null) {
+                u.name = newName || u.name;
+                u.image = newImg || u.image;
+                u.lastEdited = new Date().toLocaleDateString(undefined, { 
+                    year: 'numeric', month: 'short', day: 'numeric' 
+                }).toUpperCase();
+                
                 syncToStorage();
                 renderGrid();
             }
@@ -173,16 +214,21 @@
 
         function renderGrid() {
             const grid = document.getElementById('universe-grid');
+            if (universes.length === 0) {
+                grid.innerHTML = '<p style="color:#444; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">No local canons archived.</p>';
+                return;
+            }
+
             grid.innerHTML = universes.map(u => `
                 <div class="universe-card">
-                    <button class="edit-btn" onclick="editAttributes(${u.id})">EDIT</button>
+                    <button class="edit-btn" onclick="editAttributes(${u.id})">Edit Attributes</button>
                     <img src="${u.image}" class="universe-thumb" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="card-content">
                         <div class="universe-name">${u.name}</div>
                         <div class="universe-meta">
                             Authored by ${u.author}<br>
-                            Created on ${u.created}<br>
-                            <span style="color:#555">Last edited on ${u.lastEdited}</span>
+                            Created on ${u.created}
+                            <span class="last-edited">Last Edited: ${u.lastEdited}</span>
                         </div>
                     </div>
                 </div>
