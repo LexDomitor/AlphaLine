@@ -33,7 +33,8 @@ const PlaneEngine = {
                     if(confirm("Permanently delete node?")) { el.remove(); sync(); }
                 } else { 
                     snap(el); 
-                    sync(); 
+                    // Only sync on drop if the node has content, otherwise wait for input
+                    if (el.dataset.initialized === "true") sync(); 
                 }
             };
         };
