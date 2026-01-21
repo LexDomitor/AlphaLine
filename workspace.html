@@ -82,14 +82,17 @@
         }
         .nav-text strong { font-weight: 800; color: #fff; letter-spacing: 5px; margin-right: 5px; }
 
+        /* THINNER & CENTERED BOTTOM NAV */
         .bottom-nav { 
             bottom: 0; 
-            height: 60px; 
-            padding: 0 3rem; 
+            height: 35px; 
+            padding: 0; 
             border-width: 1px 0 0 0; 
             display: flex; 
+            flex-direction: column;
             align-items: center; 
-            justify-content: space-between; 
+            justify-content: center;
+            gap: 2px;
         }
         
         /* UI Retraction during pan/drag */
@@ -156,8 +159,8 @@
     </nav>
 
     <footer class="ui-bar bottom-nav" id="main-bottom">
-        <div id="system-status" style="font-size: 0.6rem; color: #666; letter-spacing: 1px; font-weight: 400; text-transform: uppercase;">System Standby</div>
-        <div id="coord-display" style="font-size: 0.65rem; color: #888; font-family: monospace;">0, 0 | 100%</div>
+        <div id="system-status" style="font-size: 0.5rem; color: #555; letter-spacing: 1px; font-weight: 400; text-transform: uppercase;">System Standby</div>
+        <div id="coord-display" style="font-size: 0.6rem; color: #777; font-family: monospace;">0, 0 | 100%</div>
     </footer>
 
     <aside class="tool-dock">
@@ -218,7 +221,6 @@
             worldPos.x = mouseX - (mouseX - worldPos.x) * (scale / oldScale);
             worldPos.y = mouseY - (mouseY - worldPos.y) * (scale / oldScale);
             updateWorld();
-            sync();
         }, { passive: false });
 
         let isPanning = false, startX, startY;
@@ -233,7 +235,7 @@
         window.onmouseup = () => { isPanning = false; document.body.classList.remove('hide-ui'); sync(); };
 
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
-        function recenter() { scale = 1; worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; updateWorld(); }
+        function recenter() { scale = 1; worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; updateWorld(); sync(); }
 
         viewport.ondragover = e => e.preventDefault();
         viewport.ondrop = e => {
@@ -326,7 +328,7 @@
                     const t = trash.getBoundingClientRect(); const r = el.getBoundingClientRect();
                     if(r.left < t.right && r.bottom > t.top) { if(confirm("Permanently delete node?")) el.remove(); }
                     else { snap(el); }
-                    sync();
+                    sync(); // Sync only when move/grab is completed
                 };
             };
         }
@@ -378,7 +380,7 @@
             setTimeout(() => {
                 const now = new Date();
                 statusText.innerText = `Last Sync: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-                statusText.style.color = "#666";
+                statusText.style.color = "#555";
             }, 300);
         }
 
@@ -387,7 +389,9 @@
             const loader = document.getElementById('loader');
             const progress = document.getElementById('progress-bar');
             
-            // Update Loader Messages for exit
+            // SIGNAL MASTER SHELL TO RESTORE HEADERS
+            window.parent.postMessage('RESTORE_FRAME', '*');
+            
             document.getElementById('loader-msg').innerText = "Closing Creation Plane";
             document.getElementById('loader-sub').innerText = "Returning to Multiverse Hub...";
             
