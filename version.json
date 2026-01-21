@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-01-21T11:25:10",
-  "version": "2026.01.21.07",
+  "lastUpdated": "2026-01-21T12:15:00",
+  "version": "2026.01.21.12",
   "author": "Lex Domitor",
-  "description": "Full merge. Privacy disclaimer updated. Reset logic ready. Footer grid locked."
+  "description": "Full Master Shell build. Finalized privacy-first cookie modal with navigation guidance to Account settings."
 }
