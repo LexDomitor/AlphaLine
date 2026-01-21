@@ -9,269 +9,255 @@
 
         :root {
             --bg-color: #0c0c0c;
-            --accent: #222;
+            --accent: #2a2a2a;
             --text: #ffffff;
-            --text-dim: #666; 
+            --text-dim: #888;
             --ui-speed: 0.6s cubic-bezier(0.8, 0, 0.2, 1);
         }
 
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background: #000; color: var(--text); 
-            font-family: 'Inter', sans-serif; overflow: hidden; 
-        }
-
-        /* --- Loading Overlay --- */
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
-        }
-        .loader-content { text-align: center; width: 280px; }
-        .progress-track { width: 100%; height: 2px; background: #111; margin-top: 20px; }
-        .progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
         /* --- UI Bars --- */
-        .ui-bar {
-            position: fixed; left: 0; width: 100%;
-            background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px);
-            z-index: 1000; transition: transform var(--ui-speed), opacity var(--ui-speed);
-            box-sizing: border-box; border: 1px solid var(--accent);
-        }
+        .ui-bar { position: fixed; left: 0; width: 100%; background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); z-index: 1000; transition: transform var(--ui-speed), opacity var(--ui-speed); box-sizing: border-box; border: 1px solid #333; }
         .top-nav { top: 0; height: 90px; padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; border-width: 0 0 1px 0; }
+        .bottom-nav { bottom: 0; height: 60px; padding: 0 3rem; border-width: 1px 0 0 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
         
-        /* Footer - Elevated text and grid structure */
-        .bottom-nav { 
-            bottom: 0; height: 60px; padding: 0 3rem; 
-            border-width: 1px 0 0 0; display: grid; 
-            grid-template-columns: 1fr auto 1fr; align-items: center;
-        }
-
         .is-panning .ui-bar { transform: translateY(-100%); opacity: 0; }
         .is-panning .bottom-nav { transform: translateY(100%); }
 
-        /* Branding */
-        .brand-block { display: flex; flex-direction: column; line-height: 1.2; }
-        .brand-main { font-weight: 800; letter-spacing: 4px; font-size: 1.1rem; }
-        .brand-sub { color: var(--text-dim); font-weight: 400; letter-spacing: 2px; font-size: 0.65rem; }
-        .back-arrow { cursor: pointer; font-size: 1.1rem; margin-top: 10px; transition: 0.3s; width: fit-content; }
-        .back-arrow:hover { color: #aaa; transform: translateX(-4px); }
-
-        .universe-center-title { font-weight: 300; letter-spacing: 6px; font-size: 0.75rem; text-transform: uppercase; }
-
-        /* Tool Dock */
-        .tool-dock {
-            position: fixed; left: 25px; top: 50%; transform: translateY(-50%);
-            width: 45px; background: #0c0c0c; border: 1px solid var(--accent);
-            border-radius: 25px; padding: 20px 0;
-            display: flex; flex-direction: column; align-items: center; gap: 20px;
-            z-index: 1100; transition: opacity 0.4s;
-        }
-        .is-panning .tool-dock { opacity: 0; pointer-events: none; }
-
-        /* --- Canvas & Grid --- */
-        #viewport { width: 100vw; height: 100vh; cursor: grab; background: #000; }
+        /* --- Grid System --- */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; background: #080808; position: relative; }
         #world { 
             position: absolute; width: 10000px; height: 10000px; 
-            background-image: 
-                linear-gradient(to right, #111 1px, transparent 1px),
-                linear-gradient(to bottom, #111 1px, transparent 1px);
-            background-size: 100px 100px; /* Traditional Grid Lines */
-            transform-origin: 0 0;
+            background-image: linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px);
+            background-size: 100px 100px; transform-origin: 0 0;
+            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1); /* For smooth recentering */
         }
+        .is-panning #world { transition: none; } /* Disable transition while manual panning */
+
+        .grid-cross { position: absolute; color: #333; font-size: 14px; font-weight: 300; pointer-events: none; transform: translate(-50%, -50%); }
 
         /* --- Nodes --- */
-        .node {
-            position: absolute; background: #111; border: 1px solid #333;
-            border-radius: 4px; width: 280px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column;
-        }
-        .node-container { width: 450px; min-height: 300px; background: rgba(15,15,15,0.8); border: 1px solid #444; }
+        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; z-index: 10; }
+        .node-container { width: 450px; height: 350px; background: rgba(15,15,15,0.7); }
+        .handle { height: 14px; background: #1e1e1e; cursor: grab; border-bottom: 1px solid #333; }
+        .node-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
         
-        .handle { height: 14px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #222; }
-        .node-content { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        
-        textarea, input { 
-            background: #000; border: 1px solid #222; color: #fff; 
-            font-family: inherit; font-size: 0.8rem; padding: 10px; outline: none;
-        }
+        /* Quadrant Visuals */
+        .quadrant-overlay { position: absolute; top: 14px; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; pointer-events: none; }
+        .quad { border: 1px dashed rgba(255,255,255,0.05); transition: 0.2s; }
+        .quad.active { background: rgba(255,255,255,0.1); border: 1px solid #fff; }
 
-        .tool-item { width: 32px; height: 32px; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.7rem; font-weight: 800; transition: 0.2s; }
+        /* Trashcan */
+        #trash-zone { position: fixed; bottom: 80px; left: 20px; width: 60px; height: 60px; background: rgba(255, 50, 50, 0.1); border: 2px dashed rgba(255, 50, 50, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: rgba(255, 50, 50, 0.5); z-index: 1100; transition: 0.3s; opacity: 0; }
+        .is-dragging #trash-zone { opacity: 1; }
+        #trash-zone.active { background: rgba(255, 50, 50, 0.4); border-color: #ff3232; color: #fff; transform: scale(1.1); }
+
+        /* Tool Dock */
+        .tool-dock { position: fixed; left: 25px; top: 50%; transform: translateY(-50%); width: 45px; background: #111; border: 1px solid #333; border-radius: 25px; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1100; }
+        .tool-item { width: 32px; height: 32px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.7rem; font-weight: 800; }
+        .tool-item.recenter { background: #222; cursor: pointer; color: #888; border-style: dashed; }
         .tool-item:hover { background: #fff; color: #000; }
-
-        #cursor-tooltip { position: fixed; pointer-events: none; background: #fff; color: #000; padding: 5px 10px; font-size: 0.6rem; font-weight: 800; border-radius: 2px; z-index: 5000; display: none; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div id="cursor-tooltip"></div>
-
-    <div id="loader">
-        <div class="loader-content">
-            <div id="loader-msg" style="font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase;">Initializing</div>
-            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-        </div>
-    </div>
+    <div id="trash-zone">🗑</div>
 
     <nav class="ui-bar top-nav">
         <div class="brand-block">
-            <div class="brand-main">ALPHALINE <span style="font-weight:300; color:var(--text-dim);">| CREATION PLANE</span></div>
-            <div class="back-arrow" onclick="triggerExitSequence()">←</div>
+            <div style="font-weight:800; letter-spacing:4px; font-size:1.1rem;">ALPHALINE <span style="font-weight:300; color:var(--text-dim);">| CREATION PLANE</span></div>
+            <div class="back-arrow" onclick="triggerExitSequence()" style="cursor:pointer; margin-top:10px;">←</div>
         </div>
-        <div class="universe-center-title" id="active-name">UNIVERSE NAME</div>
-        <div style="width: 150px;"></div>
+        <div id="active-name" style="font-weight:300; letter-spacing:6px; font-size:0.75rem; text-transform:uppercase;">UNIVERSE NAME</div>
+        <div style="width:150px"></div>
     </nav>
 
     <footer class="ui-bar bottom-nav">
-        <div id="footer-date" style="font-size: 0.65rem; color: #666; letter-spacing: 1px; margin-bottom: 5px;">JAN 21 2026</div>
-        <div style="font-size: 0.6rem; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;">© 2026 ALPHALINE SYSTEMS</div>
-        <div id="coord-display" style="font-size: 0.65rem; color: #666; text-align: right; letter-spacing: 1px; margin-bottom: 5px;">0, 0</div>
+        <div id="footer-date" style="font-size: 0.65rem; color: #888;">JAN 21 2026</div>
+        <div style="font-size: 0.6rem; color: #888; letter-spacing: 2px;">© 2026 ALPHALINE SYSTEMS</div>
+        <div id="coord-display" style="font-size: 0.65rem; color: #888; text-align: right;">0, 0</div>
     </footer>
 
     <aside class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')" onmouseenter="tip('Create Container Frame')" onmouseleave="untip()">C</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')" onmouseenter="tip('Create Text Node')" onmouseleave="untip()">T</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')" onmouseenter="tip('Create Image Node')" onmouseleave="untip()">I</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')">C</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')">T</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')">I</div>
+        <div style="height:1px; width:20px; background:#333; margin:5px 0;"></div>
+        <div class="tool-item recenter" onclick="recenter()" title="Recenter to 0,0">0,0</div>
     </aside>
 
-    <div id="viewport">
-        <div id="world"></div>
-    </div>
+    <div id="viewport"><div id="world"></div></div>
 
     <script>
         const world = document.getElementById('world');
         const viewport = document.getElementById('viewport');
-        const params = new URLSearchParams(window.location.search);
-        const universeId = params.get('id');
-        let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-        let activeUniverse = universes.find(u => u.id == universeId);
-        let worldPos = activeUniverse?.camera || { x: -4500, y: -4500 };
+        const trash = document.getElementById('trash-zone');
+        let worldPos = { x: -4500, y: -4500 };
+        let originalPos = { x: 0, y: 0 };
+        let childRegistry = {}; // Tracks which nodes are in which container
 
-        // --- Drag/Drop Data ---
-        function sd(e, type) { e.dataTransfer.setData('nodeType', type); }
-
-        window.onload = () => {
-            if (activeUniverse) {
-                document.getElementById('active-name').innerText = activeUniverse.name;
-                document.getElementById('loader-msg').innerText = `Transporting to the world of ${activeUniverse.name}`;
+        // Initialize Crosses
+        for(let x=0; x<=10000; x+=100) {
+            for(let y=0; y<=10000; y+=100) {
+                const c = document.createElement('div');
+                c.className = 'grid-cross'; c.style.left = x+'px'; c.style.top = y+'px'; c.innerText = '+';
+                world.appendChild(c);
             }
-            updateTimestamp();
-            const bar = document.getElementById('progress-bar');
-            setTimeout(() => { bar.style.width = '100%'; window.parent.postMessage('RETRACT_FRAME', '*'); }, 100);
-            setTimeout(() => { 
-                document.getElementById('loader').style.opacity = '0'; 
-                setTimeout(() => { document.getElementById('loader').style.display = 'none'; initWorkspace(); }, 1000); 
-            }, 3500);
-        };
-
-        function updateTimestamp() {
-            const now = new Date();
-            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-            document.getElementById('footer-date').innerText = `${months[now.getMonth()]} ${now.getDate()} ${now.getFullYear()}`;
         }
 
-        function initWorkspace() {
+        function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
+
+        function recenter() {
+            worldPos = { x: -4500, y: -4500 };
             world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-            if (activeUniverse?.timeline) { activeUniverse.timeline.forEach(data => createNode(data)); }
+            document.getElementById('coord-display').innerText = `0, 0`;
         }
 
-        // --- Panning Logic ---
+        // --- Panning ---
         let isPanning = false, startX, startY;
-        viewport.onmousedown = (e) => {
-            if (e.target !== viewport && e.target !== world) return;
-            isPanning = true; document.body.classList.add('is-panning');
-            startX = e.clientX - worldPos.x; startY = e.clientY - worldPos.y;
-        };
+        viewport.onmousedown = (e) => { if (e.target !== viewport && e.target !== world) return; isPanning = true; document.body.classList.add('is-panning'); startX = e.clientX - worldPos.x; startY = e.clientY - worldPos.y; };
         window.onmousemove = (e) => {
             if (isPanning) {
                 worldPos.x = e.clientX - startX; worldPos.y = e.clientY - startY;
                 world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-                document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x)}, ${Math.round(-worldPos.y)}`;
+                document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x - 4500)}, ${Math.round(-worldPos.y - 4500)}`;
             }
-            if(tooltip.style.display === 'block') { tooltip.style.left = e.clientX + 15 + 'px'; tooltip.style.top = e.clientY + 15 + 'px'; }
         };
-        window.onmouseup = () => { isPanning = false; document.body.classList.remove('is-panning'); syncData(); };
+        window.onmouseup = () => { isPanning = false; document.body.classList.remove('is-panning'); };
 
         // --- Node Logic ---
         viewport.ondragover = e => e.preventDefault();
         viewport.ondrop = e => {
             const type = e.dataTransfer.getData('nodeType');
-            const x = e.clientX - worldPos.x - 140;
-            const y = e.clientY - worldPos.y - 50;
-            createNode({ type, x, y });
-            syncData();
+            if(!type) return;
+            createNode({ type, x: e.clientX - worldPos.x - 100, y: e.clientY - worldPos.y - 20 });
         };
 
         function createNode(data) {
             const node = document.createElement('div');
+            const id = 'box_' + Date.now();
             node.className = `node node-${data.type}`;
             node.style.left = data.x + 'px';
             node.style.top = data.y + 'px';
-            node.dataset.id = data.boxId || 'box_' + Date.now();
+            node.dataset.id = id;
+            node.dataset.type = data.type;
 
-            let content = `<div class="handle"></div><div class="node-content">`;
-            content += `<input class="node-title" placeholder="Title" value="${data.title || ''}" oninput="syncData()">`;
-            
-            if(data.type === 'text') {
-                content += `<textarea placeholder="Body Content" rows="5" oninput="syncData()">${data.body || ''}</textarea>`;
+            let html = `<div class="handle"></div><div class="node-content">`;
+            if(data.type === 'container') {
+                html += `<input class="node-title" placeholder="Frame Title"><div class="quadrant-overlay"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div>`;
+            } else if(data.type === 'text') {
+                html += `<input class="node-title" placeholder="Title"><textarea placeholder="Content..." rows="4"></textarea>`;
             } else if(data.type === 'image') {
-                content += `<input placeholder="Image URL" value="${data.url || ''}" oninput="syncData()">`;
-            } else if(data.type === 'container') {
-                content += `<div style="height:150px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#444;">QUADRANT DROP ZONE</div>`;
+                html += `<div class="img-preview" style="display:none"></div><button onclick="this.nextElementSibling.click()" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; cursor:pointer;">UPLOAD</button><input type="file" style="display:none" onchange="handleImg(this)"><input class="node-title" placeholder="Caption...">`;
             }
-            
-            content += `</div>`;
-            node.innerHTML = content;
+            node.innerHTML = html + `</div>`;
             world.appendChild(node);
             makeDraggable(node);
+        }
+
+        function handleImg(input) {
+            const reader = new FileReader();
+            const preview = input.closest('.node-content').querySelector('.img-preview');
+            reader.onload = (e) => {
+                preview.style.display = 'block'; preview.innerHTML = `<img src="${e.target.result}" style="width:100%">`;
+                input.previousElementSibling.style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
         }
 
         function makeDraggable(el) {
             const handle = el.querySelector('.handle');
             handle.onmousedown = (e) => {
                 e.stopPropagation();
+                document.body.classList.add('is-dragging');
+                originalPos = { x: el.offsetLeft, y: el.offsetTop };
                 let p3 = e.clientX, p4 = e.clientY;
+
                 document.onmousemove = (e) => {
                     let p1 = p3 - e.clientX, p2 = p4 - e.clientY;
                     p3 = e.clientX; p4 = e.clientY;
-                    el.style.top = (el.offsetTop - p2) + "px";
-                    el.style.left = (el.offsetLeft - p1) + "px";
+                    
+                    const newLeft = el.offsetLeft - p1;
+                    const newTop = el.offsetTop - p2;
+                    el.style.left = newLeft + "px";
+                    el.style.top = newTop + "px";
+
+                    // Parent-Child: If this is a container, move registered children
+                    if(childRegistry[el.dataset.id]) {
+                        childRegistry[el.dataset.id].forEach(childId => {
+                            const child = document.querySelector(`[data-id="${childId}"]`);
+                            child.style.left = (parseInt(child.style.left) - p1) + "px";
+                            child.style.top = (parseInt(child.style.top) - p2) + "px";
+                        });
+                    }
+
+                    checkQuadrantOverlap(el);
                 };
-                document.onmouseup = () => { document.onmousemove = null; syncData(); };
+
+                document.onmouseup = () => {
+                    document.onmousemove = null;
+                    document.body.classList.remove('is-dragging');
+                    handleSnapOrTrash(el);
+                };
             };
         }
 
-        // --- Tooltip ---
-        const tooltip = document.getElementById('cursor-tooltip');
-        function tip(t) { tooltip.innerText = t; tooltip.style.display = 'block'; }
-        function untip() { tooltip.style.display = 'none'; }
+        function checkQuadrantOverlap(el) {
+            document.querySelectorAll('.quad').forEach(q => q.classList.remove('active'));
+            if(el.dataset.type === 'container') return;
+            
+            const containers = document.querySelectorAll('.node-container');
+            const eRect = el.getBoundingClientRect();
+            const ex = eRect.left + eRect.width/2;
+            const ey = eRect.top + eRect.height/2;
 
-        function syncData() {
-            const blocks = document.querySelectorAll('.node');
-            activeUniverse.timeline = Array.from(blocks).map(b => ({
-                boxId: b.dataset.id,
-                type: b.classList.contains('node-text') ? 'text' : b.classList.contains('node-image') ? 'image' : 'container',
-                x: parseInt(b.style.left),
-                y: parseInt(b.style.top),
-                title: b.querySelector('.node-title').value,
-                body: b.querySelector('textarea')?.value || "",
-                url: b.querySelector('input:nth-child(2)')?.value || ""
-            }));
-            activeUniverse.camera = worldPos;
-            const idx = universes.findIndex(u => u.id == universeId);
-            if(idx !== -1) { universes[idx] = activeUniverse; localStorage.setItem('alphaline_universes', JSON.stringify(universes)); }
+            containers.forEach(c => {
+                const cRect = c.getBoundingClientRect();
+                if(ex > cRect.left && ex < cRect.right && ey > cRect.top && ey < cRect.bottom) {
+                    const quads = c.querySelectorAll('.quad');
+                    const qIdx = (ex > cRect.left + cRect.width/2 ? 1 : 0) + (ey > cRect.top + cRect.height/2 ? 2 : 0);
+                    quads[qIdx].classList.add('active');
+                }
+            });
         }
 
-        function triggerExitSequence() {
-            syncData();
-            const l = document.getElementById('loader');
-            document.getElementById('loader-msg').innerText = "Returning to the Multiverse Hub";
-            document.getElementById('progress-bar').style.width = '0%';
-            l.style.display = 'flex'; l.style.opacity = '1';
-            setTimeout(() => document.getElementById('progress-bar').style.width = '100%', 50);
-            setTimeout(() => { window.parent.postMessage('RESTORE_FRAME', '*'); window.location.href = 'universes.html'; }, 2500);
+        function handleSnapOrTrash(el) {
+            const trashZone = trash.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            
+            if(elRect.left < trashZone.right && elRect.bottom > trashZone.top) {
+                if(confirm("Delete node?")) el.remove();
+                else { el.style.left = originalPos.x+'px'; el.style.top = originalPos.y+'px'; }
+                return;
+            }
+
+            const activeQuad = document.querySelector('.quad.active');
+            if(activeQuad) {
+                const container = activeQuad.closest('.node-container');
+                const cId = container.dataset.id;
+                const quads = Array.from(container.querySelectorAll('.quad'));
+                const idx = quads.indexOf(activeQuad);
+                
+                // Snap math
+                const cx = parseInt(container.style.left);
+                const cy = parseInt(container.style.top);
+                let tx = cx + (container.offsetWidth/4) - (el.offsetWidth/2);
+                let ty = cy + (container.offsetHeight/4) - (el.offsetHeight/2) + 7;
+                if(idx % 2 !== 0) tx += container.offsetWidth/2;
+                if(idx >= 2) ty += container.offsetHeight/2;
+
+                el.style.left = tx+'px'; el.style.top = ty+'px';
+                
+                // Register child to parent
+                if(!childRegistry[cId]) childRegistry[cId] = [];
+                if(!childRegistry[cId].includes(el.dataset.id)) childRegistry[cId].push(el.dataset.id);
+                activeQuad.classList.remove('active');
+            }
         }
+
+        function triggerExitSequence() { window.parent.postMessage('RESTORE_FRAME', '*'); window.location.href = 'universes.html'; }
+        window.onload = () => { world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`; };
     </script>
 </body>
 </html>
