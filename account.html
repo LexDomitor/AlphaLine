@@ -36,17 +36,31 @@
         h2 { font-weight: 400; font-size: 1.2rem; margin-bottom: 1rem; }
         p { color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; }
 
-        /* Privacy Controls Section */
+        .status-indicator {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .active { color: #4CAF50; }
+        .inactive { color: #F44336; }
+
         .settings-box {
             border-top: 1px solid #333;
             padding-top: 2rem;
             margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
         }
 
-        .btn-danger {
+        .btn {
             background: transparent;
-            border: 1px solid #442222;
-            color: #ff6666;
+            border: 1px solid #444;
+            color: white;
             padding: 0.6rem 1.2rem;
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -55,10 +69,9 @@
             transition: 0.3s ease;
         }
 
-        .btn-danger:hover {
-            background: #442222;
-            color: white;
-        }
+        .btn:hover { background: #333; }
+        .btn-danger { border-color: #442222; color: #ff6666; }
+        .btn-danger:hover { background: #442222; color: white; }
     </style>
 </head>
 <body>
@@ -66,19 +79,40 @@
     <div class="container">
         <div class="status-tag">Under Development</div>
         <h2>Account services are still in development.</h2>
-        <p>You are currently using AlphaLine as a Guest. Your data is stored locally via functional cookies.</p>
+        
+        <div id="status-display" class="status-indicator"></div>
+
+        <p id="desc-text">You are currently using AlphaLine as a Guest.</p>
 
         <div class="settings-box">
-            <p style="font-size: 0.75rem;">PRIVACY CONTROLS</p>
-            <button class="btn-danger" onclick="revokeAccess()">Revoke Cookies & Reset Data</button>
+            <button class="btn" onclick="window.parent.openModal('cookies')">Check Cookie Preferences</button>
+            <button id="reset-btn" class="btn btn-danger" style="display:none;" onclick="revokeAccess()">Revoke Cookies & Reset Data</button>
         </div>
     </div>
 
     <script>
+        const consent = localStorage.getItem('alphaline_consent');
+        const statusEl = document.getElementById('status-display');
+        const descEl = document.getElementById('desc-text');
+        const resetBtn = document.getElementById('reset-btn');
+
+        if (consent === 'true') {
+            statusEl.innerHTML = "● Local Data Saving: ACTIVE";
+            statusEl.className = "status-indicator active";
+            descEl.innerHTML = "Cookies are enabled. Your Universe Canons will be saved locally to this browser.";
+            resetBtn.style.display = "block";
+        } else if (consent === 'false') {
+            statusEl.innerHTML = "● Local Data Saving: DISABLED";
+            statusEl.className = "status-indicator inactive";
+            descEl.innerHTML = "Cookies were declined. Work will not be saved automatically.";
+        } else {
+            statusEl.innerHTML = "● Local Data Saving: PENDING";
+            statusEl.className = "status-indicator";
+        }
+
         function revokeAccess() {
             if(confirm("This will delete all saved Universe Canons and reset your preferences. Proceed?")) {
                 localStorage.clear();
-                // Forces the parent shell to refresh and show the cookie prompt again
                 window.parent.location.reload();
             }
         }
