@@ -15,7 +15,6 @@
             --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* --- Sleek Scrollbar --- */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; border: 2px solid var(--bg-color); }
@@ -39,18 +38,34 @@
             display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; 
         }
 
+        /* --- Hover Effect: Frosted Glass Background --- */
         .universe-card {
             background: var(--card-bg); border: 1px solid var(--accent);
             padding: 1.5rem; display: flex; align-items: center; gap: 1.2rem;
             position: relative; cursor: pointer; transition: var(--transition);
+            overflow: hidden; z-index: 1;
         }
-        .universe-card:hover { border-color: #666; background: #1a1a1a; }
+
+        .card-bg-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            filter: blur(15px) brightness(0.3);
+            opacity: 0; transition: var(--transition);
+            z-index: -1; transform: scale(1.1);
+        }
+
+        .universe-card:hover .card-bg-overlay { opacity: 1; transform: scale(1); }
+        .universe-card:hover .universe-thumb { opacity: 0; transform: scale(0.8); }
+        .universe-card:hover { border-color: #888; }
 
         .universe-thumb { 
             width: 80px; height: 80px; border-radius: 50%; 
             object-fit: cover; border: 1px solid var(--accent); 
-            background: #000; flex-shrink: 0;
+            background: #000; flex-shrink: 0; transition: var(--transition);
         }
+
+        .card-content { transition: var(--transition); }
+        .universe-card:hover .card-content { transform: translateX(5px); }
 
         /* --- Side Panel --- */
         #edit-panel {
@@ -74,12 +89,15 @@
 
         label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 0.5rem; }
         
-        input {
+        input, textarea {
             width: 100%; background: #000; border: 1px solid var(--accent);
             padding: 0.8rem; color: white; font-family: inherit; font-size: 0.9rem;
-            box-sizing: border-box; margin-bottom: 1.5rem; outline: none;
+            box-sizing: border-box; margin-bottom: 1rem; outline: none;
         }
-        input:focus { border-color: #666; }
+        textarea { height: 100px; resize: none; line-height: 1.5; }
+        input:focus, textarea:focus { border-color: #666; }
+
+        .char-count { font-size: 0.5rem; text-align: right; color: var(--text-dim); margin-top: -0.8rem; margin-bottom: 1rem; }
         
         .preview-container { width: 120px; height: 120px; margin-bottom: 1.5rem; }
         .preview-circle { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); display: none; }
@@ -119,6 +137,10 @@
 
         <label>Universe Identity</label>
         <input type="text" id="inp-name" placeholder="Name" oninput="autoSave()">
+
+        <label>Synopsis (250 Characters)</label>
+        <textarea id="inp-synopsis" maxlength="250" placeholder="A brief summary of this world..." oninput="autoSave()"></textarea>
+        <div id="char-count" class="char-count">0 / 250</div>
         
         <label>Thumbnail</label>
         <div class="preview-container">
@@ -130,6 +152,7 @@
         <input type="text" id="inp-img" placeholder="Or paste Image URL" oninput="autoSave()">
 
         <div id="mgmt-section" style="margin-top: 2rem; border-top: 1px solid var(--accent); padding-top: 1rem;">
+            <div id="date-info" style="font-size: 0.6rem; color: #555; text-transform: uppercase; margin-bottom: 1rem; line-height: 1.4;"></div>
             <button id="export-btn" class="btn-utility" onclick="exportSingle()">Export to JSON</button>
             <button id="del-btn" class="btn-utility btn-danger" onclick="deleteUniverse()">Delete Universe</button>
         </div>
@@ -145,10 +168,14 @@
             grid.innerHTML = universes.length === 0 ? '<p style="color:#444; font-size:0.75rem; text-transform:uppercase;">Archive empty.</p>' : 
             universes.map(u => `
                 <div class="universe-card" onclick="handleCardClick(${u.id})">
+                    <div class="card-bg-overlay" style="background-image: url('${u.image || ''}')"></div>
                     <img src="${u.image}" class="universe-thumb" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="card-content">
                         <div style="font-size:1.1rem; font-weight:500;">${u.name}</div>
-                        <div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-top:5px;">Guest | Edited ${u.lastEdited || u.created}</div>
+                        <div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-top:5px; opacity: 0.8;">
+                            Created ${u.created || 'Unknown'}<br>
+                            Edited ${u.lastEdited || u.created}
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -158,11 +185,10 @@
             if (isCreatingNew) {
                 if (!confirm("You have a Canon creation in progress. Opening this will discard your current draft. Proceed?")) return;
             }
-            
             const panel = document.getElementById('edit-panel');
             if (panel.classList.contains('active')) {
                 panel.classList.remove('active');
-                await new Promise(r => setTimeout(r, 400)); // Wait for slide out
+                await new Promise(r => setTimeout(r, 400));
             }
             openPanel(id);
         }
@@ -175,40 +201,55 @@
         function openPanel(id = null) {
             activeId = id;
             const panel = document.getElementById('edit-panel');
+            const dateInfo = document.getElementById('date-info');
+            
             if (id) {
                 isCreatingNew = false;
                 const u = universes.find(x => x.id === id);
-                document.getElementById('inp-name').value = u.name;
-                document.getElementById('inp-img').value = u.image;
+                document.getElementById('inp-name').value = u.name || "";
+                document.getElementById('inp-synopsis').value = u.synopsis || "";
+                document.getElementById('inp-img').value = u.image || "";
                 document.getElementById('panel-title').innerText = "Edit Canon";
                 document.getElementById('mgmt-section').style.display = "block";
+                dateInfo.innerHTML = `Created: ${u.created || 'N/A'}<br>Last Sync: ${u.lastEdited || 'N/A'}`;
+                updateCharCount(u.synopsis || "");
             } else {
                 document.getElementById('inp-name').value = "";
+                document.getElementById('inp-synopsis').value = "";
                 document.getElementById('inp-img').value = "";
                 document.getElementById('panel-title').innerText = "New Canon";
                 document.getElementById('mgmt-section').style.display = "none";
+                updateCharCount("");
             }
             updatePreview(document.getElementById('inp-img').value);
             panel.classList.add('active');
         }
 
+        function updateCharCount(text) {
+            document.getElementById('char-count').innerText = `${text.length} / 250`;
+        }
+
         function autoSave() {
             const name = document.getElementById('inp-name').value || "Untitled";
+            const synopsis = document.getElementById('inp-synopsis').value || "";
             const img = document.getElementById('inp-img').value || '';
             const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
             
             updatePreview(img);
+            updateCharCount(synopsis);
             document.getElementById('save-status').innerText = "Saving...";
 
             if (activeId) {
                 const u = universes.find(x => x.id === activeId);
-                u.name = name; u.image = img; u.lastEdited = date;
-            } else if (isCreatingNew && name !== "Untitled") {
-                // First keystroke in New Canon creates the object
+                u.name = name; u.synopsis = synopsis; u.image = img; u.lastEdited = date;
+            } else if (isCreatingNew && (name !== "" || synopsis !== "")) {
                 const newId = Date.now();
-                universes.push({ id: newId, name, image: img, author: "Guest", created: date, lastEdited: date });
+                universes.push({ 
+                    id: newId, name, synopsis, image: img, author: "Guest", 
+                    created: date, lastEdited: date 
+                });
                 activeId = newId;
-                isCreatingNew = false; // Transition from Draft to Active
+                isCreatingNew = false;
                 document.getElementById('mgmt-section').style.display = "block";
             }
 
@@ -217,6 +258,7 @@
             setTimeout(() => { document.getElementById('save-status').innerText = "Synced"; }, 500);
         }
 
+        // ... [Helper functions for Preview, Close, Upload, Delete, Export, Import remain the same] ...
         function updatePreview(val) {
             const img = document.getElementById('prev-img');
             const placeholder = document.getElementById('placeholder-box');
@@ -226,40 +268,26 @@
                 img.classList.remove('visible'); placeholder.style.display = 'flex';
             }
         }
-
-        function closePanel() { 
-            document.getElementById('edit-panel').classList.remove('active'); 
-            isCreatingNew = false;
-        }
-
+        function closePanel() { document.getElementById('edit-panel').classList.remove('active'); isCreatingNew = false; }
         function handleUpload(input) {
             const file = input.files[0];
             const reader = new FileReader();
-            reader.onloadend = () => {
-                document.getElementById('inp-img').value = reader.result;
-                autoSave();
-            }
+            reader.onloadend = () => { document.getElementById('inp-img').value = reader.result; autoSave(); }
             if (file) reader.readAsDataURL(file);
         }
-
         function deleteUniverse() {
             if (confirm("Delete this universe?") && confirm("Final confirmation?")) {
                 universes = universes.filter(x => x.id !== activeId);
                 localStorage.setItem('alphaline_universes', JSON.stringify(universes));
-                closePanel();
-                renderGrid();
+                closePanel(); renderGrid();
             }
         }
-
         function exportSingle() {
             const u = universes.find(x => x.id === activeId);
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(u, null, 2));
             const a = document.createElement('a');
-            a.setAttribute("href", dataStr);
-            a.setAttribute("download", u.name + ".json");
-            a.click();
+            a.setAttribute("href", dataStr); a.setAttribute("download", u.name + ".json"); a.click();
         }
-
         function importCanon(input) {
             const file = input.files[0];
             const reader = new FileReader();
