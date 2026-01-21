@@ -7,7 +7,6 @@ const PlaneEngine = {
         handle.onmousedown = (e) => {
             e.stopPropagation();
             
-            // "Tear out" logic: if snapped, restore to world coordinates
             if(el.classList.contains('snapped')) {
                 const rect = el.getBoundingClientRect();
                 el.classList.remove('snapped');
@@ -45,22 +44,16 @@ const PlaneEngine = {
     makeResizable: function(el, scale, sync) {
         const resizer = el.querySelector('.resizer');
         if(!resizer) return;
-
         resizer.onmousedown = (e) => {
             e.stopPropagation();
             e.preventDefault();
             let startW = el.offsetWidth;
             let startX = e.clientX;
-
             document.onmousemove = (e) => {
                 const deltaX = (e.clientX - startX) / scale;
                 el.style.width = Math.max(150, startW + deltaX) + "px";
             };
-
-            document.onmouseup = () => {
-                document.onmousemove = null;
-                sync();
-            };
+            document.onmouseup = () => { document.onmousemove = null; sync(); };
         };
     },
 
@@ -69,7 +62,6 @@ const PlaneEngine = {
         if(el.dataset.type === 'container') return;
         const r = el.getBoundingClientRect(); 
         const ex = r.left + r.width/2, ey = r.top + r.height/2;
-
         document.querySelectorAll('.node-container').forEach(c => {
             const cr = c.getBoundingClientRect();
             if(ex > cr.left && ex < cr.right && ey > cr.top && ey < cr.bottom) {
