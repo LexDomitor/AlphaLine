@@ -11,15 +11,13 @@
         html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; position: fixed; top: 0; left: 0; }
         * { box-sizing: border-box; }
 
-        /* --- LOADER --- */
-        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; pointer-events: none; }
+        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; pointer-events: none; }
         .loader-content { text-align: center; width: 350px; }
         #loader-msg { font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase; margin-bottom: 10px; }
         #loader-sub { font-size: 0.8rem; letter-spacing: 2px; color: #fff; font-weight: 300; text-transform: uppercase; }
         .progress-track { width: 100%; height: 2px; background: #111; margin-top: 25px; position: relative; }
-        #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s ease; position: absolute; top:0; left:0; }
+        #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 0.3s ease; position: absolute; top:0; left:0; }
 
-        /* --- TOP UI BAR --- */
         .top-nav { 
             position: fixed; top: 0; left: 0; width: 100%; height: 85px;
             background: rgba(12, 12, 12, 0.98); backdrop-filter: blur(20px); 
@@ -28,7 +26,7 @@
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
         }
         .brand-block { display: flex; align-items: center; gap: 15px; }
-        .exit-btn { cursor: pointer; font-size: 1.5rem; color: #555; transition: 0.3s; }
+        .exit-btn { cursor: pointer; font-size: 1.5rem; color: #555; transition: 0.3s; z-index: 2000; }
         .exit-btn:hover { color: #fff; transform: translateX(-5px); }
         .nav-text { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: #888; font-weight: 300; }
         .nav-text strong { font-weight: 800; color: #fff; letter-spacing: 5px; }
@@ -40,60 +38,47 @@
 
         .hide-ui .top-nav { transform: translateY(-100%); opacity: 0; }
 
-        /* --- WORLD & NODES --- */
         #viewport { width: 100vw; height: 100vh; cursor: grab; background: var(--bg); position: relative; overflow: hidden; }
-        #world { position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; background-image: radial-gradient(circle, #444 1.5px, transparent 1.5px), linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px); background-size: 100px 100px; }
+        #world { position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; background-image: radial-gradient(circle, #222 1px, transparent 1px); background-size: 100px 100px; }
 
-        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 240px; display: flex; flex-direction: column; z-index: 10; transition: box-shadow 0.2s; }
-        .node:hover { box-shadow: 0 0 20px rgba(255,255,255,0.05); }
+        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 240px; display: flex; flex-direction: column; z-index: 20; }
+        .node-container { z-index: 10; width: 500px; min-height: 320px; }
         
         .handle { height: 18px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #222; opacity: 0.3; transition: 0.3s; position: relative; }
         .node:hover .handle { opacity: 1; }
         
-        /* RESIZE HANDLE */
-        .resizer { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; z-index: 100; background: linear-gradient(135deg, transparent 50%, #333 50%); border-bottom-right-radius: 4px; opacity: 0; transition: 0.3s; }
+        .resizer { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; z-index: 100; background: linear-gradient(135deg, transparent 50%, #333 50%); border-bottom-right-radius: 4px; opacity: 0; }
         .node:hover .resizer { opacity: 1; }
 
-        .node-content { padding: 10px; display: flex; flex-direction: column; gap: 4px; height: 100%; }
+        .node-content { padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: center; }
         
-        /* SEAMLESS INPUTS */
         input, textarea { 
             background: transparent; border: 1px solid transparent; color: #fff; 
             font-size: 0.75rem; padding: 6px; outline: none; width: 100%; 
-            transition: 0.2s; resize: none; overflow: hidden;
+            transition: 0.2s; resize: none; overflow: hidden; text-align: center;
         }
         input:hover, textarea:hover, input:focus, textarea:focus { border-color: #333; background: rgba(255,255,255,0.03); }
         
-        /* SPECIFIC NODE TYPOGRAPHY */
-        .node-title { font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-        
-        /* IMAGE NODE REFINEMENT */
+        .node-title { font-weight: 400; color: var(--caption); font-size: 0.75rem; text-transform: none; }
+        .node-text .node-title { font-weight: 600; color: #fff; font-size: 0.8rem; }
+
         .node-image { height: auto !important; }
-        .node-image .node-title { 
-            text-transform: none !important; 
-            font-weight: 400; 
-            letter-spacing: 0px; 
-            color: var(--caption); 
-            font-size: 0.75rem; 
-            margin-top: 4px;
-            height: auto;
-        }
         .img-preview { width: 100%; line-height: 0; }
         .img-preview img { width: 100%; height: auto; display: block; border-radius: 2px; }
         .upload-btn { background: #1a1a1a; color: #555; border: 1px solid #252525; padding: 15px; cursor: pointer; font-size: 0.6rem; letter-spacing: 2px; width: 100%; border-radius: 2px; }
 
-        .node-container { width: 500px; min-height: 320px; }
         .container-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 212px; gap: 12px; padding: 12px; position: relative; }
         .quad-layer { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 212px; gap: 12px; padding: 12px; pointer-events: none; }
         .quad { border: 1px dashed rgba(255,255,255,0.05); }
         .quad.active { background: rgba(255,255,255,0.1); border: 1px solid #fff; }
-        .node.snapped { position: relative !important; width: 100% !important; height: 100% !important; left: auto !important; top: auto !important; }
-        .node.snapped .resizer { display: none; } /* Disable manual resize when snapped to grid */
+        .node.snapped { position: relative !important; width: 100% !important; height: 100% !important; left: auto !important; top: auto !important; z-index: 25; }
 
         .tool-dock { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 42px; background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1100; }
-        .tool-item { width: 30px; height: 30px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.65rem; font-weight: 800; transition: 0.2s; }
+        .tool-item { width: 30px; height: 30px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.65rem; font-weight: 800; transition: 0.2s; position: relative; }
         .tool-item:hover { background: #fff; color: #000; }
-        
+        .tool-item::after { content: attr(data-tip); position: absolute; left: 45px; top: 50%; transform: translateY(-50%); background: #fff; color: #000; font-size: 0.6rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; white-space: nowrap; opacity: 0; pointer-events: none; transition: 0.2s; }
+        .tool-item:hover::after { opacity: 1; left: 52px; }
+
         #trash-zone { position: fixed; bottom: 30px; left: 20px; width: 60px; height: 60px; background: rgba(255,50,50,0.1); border: 2px dashed #ff3232; border-radius: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 1100; font-size: 1.5rem; }
         .is-dragging #trash-zone { opacity: 1; }
     </style>
@@ -102,8 +87,8 @@
 
     <div id="loader">
         <div class="loader-content">
-            <div id="loader-msg">Initializing Connection</div>
-            <div id="loader-sub">Transporting...</div>
+            <div id="loader-msg">Restoring Universe</div>
+            <div id="loader-sub">Standby...</div>
             <div class="progress-track"><div id="progress-bar"></div></div>
         </div>
     </div>
@@ -124,10 +109,10 @@
     </nav>
 
     <aside class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')">C</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')">T</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')">I</div>
-        <div class="tool-item" onclick="recenter()" style="cursor:pointer; border-style:dashed; color:#666;">R</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')" data-tip="New Container">C</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')" data-tip="Text Node">T</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')" data-tip="Image Node">I</div>
+        <div class="tool-item" onclick="recenter()" style="cursor:pointer; border-style:dashed; color:#666;" data-tip="Recenter Plane">R</div>
     </aside>
 
     <div id="viewport"><div id="world"></div></div>
@@ -136,6 +121,7 @@
     <script>
         const viewport = document.getElementById('viewport'), world = document.getElementById('world');
         const statusText = document.getElementById('system-status');
+        const progressBar = document.getElementById('progress-bar');
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         
@@ -147,12 +133,12 @@
         window.onload = () => {
             if(activeUniverse) document.getElementById('active-name').innerText = activeUniverse.name;
             updateWorld();
-            setTimeout(() => { document.getElementById('progress-bar').style.width = '100%'; }, 100);
+            progressBar.style.width = '100%';
             setTimeout(() => { 
                 document.getElementById('loader').style.opacity = '0';
                 if(activeUniverse?.timeline) activeUniverse.timeline.forEach(t => createNode(t, true));
-                setTimeout(() => document.getElementById('loader').style.display = 'none', 1000);
-            }, 2500);
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 1000);
         };
 
         function updateWorld() {
@@ -162,7 +148,6 @@
             document.getElementById('coord-display').innerText = `${displayX}, ${displayY} | ${Math.round(scale * 100)}%`;
         }
 
-        // AUTO-EXPAND LOGIC (Captions + Textareas)
         function autoGrow(el) { 
             if(!el) return;
             el.style.height = "5px"; 
@@ -206,19 +191,21 @@
         function markInit(el) {
             const node = el.closest('.node');
             node.dataset.initialized = "true";
-            autoGrow(el); // Expand caption or text
+            autoGrow(el);
             sync();
         }
 
         function handleImg(input) {
             const reader = new FileReader();
+            statusText.innerText = "Processing Image...";
             reader.onload = (e) => {
                 const node = input.closest('.node');
                 node.querySelector('.img-preview').innerHTML = `<img src="${e.target.result}">`;
                 input.previousElementSibling.style.display = 'none';
                 node.dataset.base64 = e.target.result; 
                 node.dataset.initialized = "true";
-                sync();
+                // Delay sync to allow image to register in DOM
+                setTimeout(() => sync(), 100);
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -242,11 +229,11 @@
                 html += `<input class="node-title" placeholder="Frame Title" value="${data.title||''}" oninput="markInit(this)">
                          <div class="container-grid"><div class="quad-layer"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div></div>`;
             } else if(data.type === 'text') {
-                html += `<input class="node-title" placeholder="Title" value="${data.title||''}" oninput="markInit(this)">
+                html += `<input class="node-title" placeholder="Topic" value="${data.title||''}" oninput="markInit(this)">
                          <textarea placeholder="Write..." oninput="markInit(this)">${data.body||''}</textarea>`;
             } else if(data.type === 'image') {
                 html += `<div class="img-preview">${data.url ? `<img src="${data.url}">` : ''}</div>
-                         <button class="upload-btn" onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}">DRAG OR SELECT IMAGE</button>
+                         <button class="upload-btn" onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}">SELECT IMAGE</button>
                          <input type="file" style="display:none" onchange="handleImg(this)">
                          <textarea class="node-title" placeholder="Add a caption..." oninput="markInit(this)">${data.title||''}</textarea>`;
             }
@@ -258,52 +245,52 @@
                 document.querySelector(`[data-id="${data.parent}"] .container-grid`)?.appendChild(node);
             }
 
-            PlaneEngine.makeDraggable(node, { 
-                world, worldPos, scale, sync, 
-                trash: document.getElementById('trash-zone'),
-                checkQuads: (el) => PlaneEngine.checkQuads(el, scale),
-                snap: PlaneEngine.snap 
-            });
-
+            PlaneEngine.makeDraggable(node, { world, worldPos, scale, sync, trash: document.getElementById('trash-zone'), checkQuads: (el) => PlaneEngine.checkQuads(el, scale), snap: PlaneEngine.snap });
             PlaneEngine.makeResizable(node, scale, sync);
-
-            // Initial auto-expand for loaded data
-            setTimeout(() => {
-                const els = node.querySelectorAll('textarea');
-                els.forEach(el => autoGrow(el));
-            }, 50);
+            setTimeout(() => { node.querySelectorAll('textarea').forEach(el => autoGrow(el)); }, 50);
         }
 
         function sync() {
             if(!activeUniverse) return;
-            statusText.innerText = "Syncing..."; statusText.style.color = "#fff";
+            statusText.innerText = "Syncing...";
             
-            activeUniverse.timeline = Array.from(document.querySelectorAll('.node'))
-                .filter(n => n.dataset.initialized === "true")
-                .map(n => ({
-                    boxId: n.dataset.id, type: n.dataset.type,
-                    x: n.classList.contains('snapped') ? 0 : parseInt(n.style.left),
-                    y: n.classList.contains('snapped') ? 0 : parseInt(n.style.top),
-                    w: parseInt(n.style.width) || 240,
-                    parent: n.classList.contains('snapped') ? n.closest('.node-container').dataset.id : null,
-                    title: n.querySelector('.node-title')?.value || "",
-                    body: n.querySelector('textarea')?.value || "",
-                    url: n.dataset.base64 || ""
-                }));
+            try {
+                activeUniverse.timeline = Array.from(document.querySelectorAll('.node'))
+                    .filter(n => n.dataset.initialized === "true")
+                    .map(n => ({
+                        boxId: n.dataset.id, type: n.dataset.type,
+                        x: n.classList.contains('snapped') ? 0 : parseInt(n.style.left),
+                        y: n.classList.contains('snapped') ? 0 : parseInt(n.style.top),
+                        w: parseInt(n.style.width) || 240,
+                        parent: n.classList.contains('snapped') ? n.closest('.node-container').dataset.id : null,
+                        title: (n.querySelector('.node-title')?.value || n.querySelector('.node-title')?.innerText || ""),
+                        body: n.querySelector('textarea')?.value || "",
+                        url: n.dataset.base64 || ""
+                    }));
 
-            activeUniverse.camera = worldPos; activeUniverse.scale = scale;
-            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
-            setTimeout(() => { statusText.innerText = "Synced"; statusText.style.color = "#555"; }, 400);
+                activeUniverse.camera = worldPos; activeUniverse.scale = scale;
+                localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+                statusText.innerText = "Synced";
+            } catch (e) {
+                console.warn("Storage full or error", e);
+                statusText.innerText = "Storage Full";
+            }
         }
 
         function triggerExitSequence() {
+            // Force final save
             sync();
-            window.parent.postMessage('RESTORE_FRAME', '*');
+            
+            // UI Feedback
             const loader = document.getElementById('loader');
             loader.style.display = 'flex';
             loader.style.opacity = '1';
-            document.getElementById('progress-bar').style.width = '100%';
-            setTimeout(() => { window.location.href = 'universes.html'; }, 1100);
+            progressBar.style.width = '100%';
+            
+            // Navigate after short delay
+            setTimeout(() => {
+                window.location.href = 'universes.html';
+            }, 600);
         }
     </script>
 </body>
