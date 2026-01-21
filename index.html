@@ -26,7 +26,7 @@
             overflow: hidden; 
         }
 
-        /* --- Header & Footer Architecture --- */
+        /* --- Header & Footer --- */
         header, footer { background: var(--bg-color); border-color: var(--accent-gray); border-style: solid; padding: 1.5rem 5%; z-index: 5; }
         header { border-width: 0 0 1px 0; display: flex; justify-content: space-between; align-items: center; }
         footer { border-width: 1px 0 0 0; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
@@ -40,7 +40,7 @@
         main { flex: 1; position: relative; width: 100%; }
         #content-frame { width: 100%; height: 100%; border: none; background: transparent; }
 
-        /* --- THE MODAL SYSTEM --- */
+        /* --- MODAL SYSTEM --- */
         #modal-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -60,18 +60,19 @@
         .modal-panel {
             background: var(--modal-bg);
             width: 90%;
-            max-width: 600px;
+            max-width: 550px;
             padding: 3rem;
             border: 1px solid var(--accent-gray);
             border-radius: 4px;
             position: relative;
             transform: translateY(20px);
             transition: transform 0.3s ease;
+            text-align: center; /* Centering the footer button */
         }
 
         #modal-overlay.active .modal-panel { transform: translateY(0); }
 
-        .modal-close {
+        .modal-close-x {
             position: absolute;
             top: 1.5rem;
             right: 1.5rem;
@@ -81,12 +82,27 @@
             line-height: 1;
             transition: var(--transition);
         }
-        .modal-close:hover { color: var(--text-main); }
+        .modal-close-x:hover { color: var(--text-main); }
 
-        #modal-content h2 { margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 300; border-bottom: 1px solid var(--accent-gray); padding-bottom: 0.5rem; }
-        #modal-content p { color: var(--text-dim); line-height: 1.8; font-size: 0.9rem; letter-spacing: 0.02rem; }
+        #modal-content h2 { margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 300; border-bottom: 1px solid var(--accent-gray); padding-bottom: 0.5rem; text-align: left; }
+        #modal-content p { color: var(--text-dim); line-height: 1.8; font-size: 0.9rem; letter-spacing: 0.02rem; text-align: left; margin-bottom: 2.5rem; }
 
-        /* --- Technical Data Footer --- */
+        /* Bottom Close Button */
+        .modal-btn-return {
+            background: transparent;
+            border: 1px solid var(--accent-gray);
+            color: var(--text-main);
+            padding: 0.8rem 2rem;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.15rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-btn-return:hover { background: var(--accent-gray); border-color: var(--text-dim); }
+
+        /* --- Footer Data --- */
         .footer-data-grid { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; font-size: 0.65rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
         .last-updated { text-align: left; }
         .copyright { text-align: center; letter-spacing: 0.2rem; font-weight: 500; }
@@ -95,7 +111,7 @@
         @media (max-width: 850px) {
             .footer-data-grid { display: flex; flex-direction: column; gap: 1rem; text-align: center; align-items: center; }
             .user-info { text-align: center; }
-            .modal-panel { padding: 2rem; }
+            .modal-panel { padding: 2.5rem 1.5rem; }
         }
     </style>
 </head>
@@ -115,8 +131,9 @@
 
     <div id="modal-overlay" onclick="closeModal()">
         <div class="modal-panel" onclick="event.stopPropagation()">
-            <div class="modal-close" onclick="closeModal()">×</div>
+            <div class="modal-close-x" onclick="closeModal()">×</div>
             <div id="modal-content"></div>
+            <button class="modal-btn-return" onclick="closeModal()">Return to AlphaLine</button>
         </div>
     </div>
 
@@ -145,7 +162,7 @@
             },
             changelog: {
                 title: "Changelog",
-                text: "2026.01.21.01: Implemented smooth modal transitions and Escape-key listener.<br>2026.01.21.00: Initial Modal architecture & interaction locking."
+                text: "2026.01.21.03: Integrated 'Return to AlphaLine' button within Modal.<br>2026.01.21.01: Implemented smooth modal transitions.<br>2026.01.21.00: Initial Modal architecture."
             }
         };
 
@@ -167,11 +184,7 @@
             }, 300);
         }
 
-        // Close on Escape Key
-        window.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") closeModal();
-        });
-
+        window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
         function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
 
         // --- Time Functions ---
