@@ -36,7 +36,7 @@
             border-bottom: 1px solid var(--accent-gray);
             z-index: 10;
             background: var(--bg-color);
-            transition: transform var(--transition); /* Motorized property */
+            transition: transform var(--transition);
         }
 
         .logo { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; cursor: pointer; letter-spacing: -1px; }
@@ -90,7 +90,6 @@
         #modal-content h2 { margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; }
         #modal-content p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; margin-bottom: 2rem; }
 
-        /* Modal Buttons */
         .modal-actions { display: flex; gap: 1rem; justify-content: flex-start; }
         .btn {
             padding: 0.8rem 1.5rem;
@@ -113,7 +112,7 @@
             flex-direction: column;
             gap: 1.5rem;
             background: var(--bg-color);
-            transition: transform var(--transition); /* Motorized property */
+            transition: transform var(--transition);
         }
 
         .footer-nav { display: flex; justify-content: center; gap: 2.5rem; }
@@ -137,10 +136,9 @@
         /* --- RETRACTION LOGIC --- */
         body.workspace-mode header { transform: translateY(-100%); }
         body.workspace-mode footer { transform: translateY(100%); }
-        /* Shift main content to cover the voids left by header/footer */
         body.workspace-mode main { 
-            margin-top: -70px; /* Offset roughly equal to header height */
-            margin-bottom: -150px; /* Offset roughly equal to footer height */
+            margin-top: -80px; /* Fully slides main up to hide top void */
+            margin-bottom: -150px; 
             height: 100vh;
         }
 
@@ -207,7 +205,6 @@
         };
 
         // --- RETRACTION BRIDGE ---
-        // Listens for a signal from the iframe (universes.html) to hide the UI
         window.addEventListener('message', (event) => {
             if (event.data === 'RETRACT_FRAME') {
                 document.body.classList.add('workspace-mode');
@@ -255,7 +252,6 @@
         window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
         
         function handleNav(page) { 
-            // Ensure UI is restored if navigating via the logo or nav links
             document.body.classList.remove('workspace-mode');
             document.getElementById('content-frame').src = page + '.html'; 
         }
