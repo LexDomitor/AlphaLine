@@ -1,57 +1,231 @@
-// Function to calculate PST Offset
-function getPSTOffset() {
-    const now = new Date();
-    // Use Intl to get time specifically in PST/PDT
-    const pstString = now.toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour12: false});
-    const pstDate = new Date(pstString);
-    
-    // Calculate difference in hours
-    const diff = Math.round((pstDate - now) / 3600000);
-    const sign = diff >= 0 ? "+" : "";
-    return `PST ${sign}${diff}H`;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaLine | Master Shell</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --accent-gray: #333333;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-async function loadLastUpdated() {
-    try {
-        // Fetching from a local version file
-        const response = await fetch('version.json');
-        const data = await response.json();
-        const bTime = new Date(data.lastUpdated);
-        
-        const dateOps = { month: 'long', day: 'numeric', year: 'numeric' };
-        const timeOps = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
-        
-        document.getElementById('last-updated').innerHTML = `
-            LAST UPDATED<br>
-            ${bTime.toLocaleTimeString(undefined, timeOps)} | ${bTime.toLocaleDateString(undefined, dateOps)}
-        `;
-    } catch (e) {
-        // Fallback if file is missing
-        document.getElementById('last-updated').innerHTML = "LAST UPDATED<br>OFFLINE";
-    }
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-function updateLiveClock() {
-    const now = new Date();
-    
-    // Format Time with Seconds
-    const timeOps = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
-    const dateOps = { month: 'long', day: 'numeric', year: 'numeric' };
-    
-    // Get Timezone Abbreviation (e.g., GMT, EST)
-    const tzName = Intl.DateTimeFormat(undefined, {timeZoneName: 'short'}).formatToParts(now)
-                    .find(part => part.type === 'timeZoneName').value;
-    
-    const region = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
-    const pstRel = getPSTOffset();
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
 
-    document.getElementById('user-info').innerHTML = `
-        ${region.toUpperCase()} (${tzName}) [${pstRel}]<br>
-        ${now.toLocaleTimeString(undefined, timeOps)} | ${now.toLocaleDateString(undefined, dateOps)}
-    `;
-}
+        /* --- Header --- */
+        header {
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--accent-gray);
+            z-index: 10;
+        }
 
-// Initialize
-loadLastUpdated();
-updateLiveClock();
-setInterval(updateLiveClock, 1000); // Update every second
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        nav { display: flex; gap: 1rem; }
+
+        .nav-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: var(--transition);
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .nav-link:hover {
+            background-color: var(--accent-gray);
+            color: var(--text-main);
+        }
+
+        /* --- Main Content (The Window) --- */
+        main {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: var(--bg-color);
+        }
+
+        #content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: transparent;
+        }
+
+        /* --- Footer --- */
+        footer {
+            width: 100%;
+            padding: 1.5rem 5%;
+            border-top: 1px solid var(--accent-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.2rem;
+            background: var(--bg-color);
+        }
+
+        .footer-nav { display: flex; gap: 2.5rem; }
+
+        .footer-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover { color: var(--text-main); }
+
+        .footer-data-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: end;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            letter-spacing: 0.03rem;
+            font-variant-numeric: tabular-nums; 
+        }
+
+        .last-updated { grid-column: 1; text-align: left; line-height: 1.4; }
+        .copyright { grid-column: 2; text-align: center; text-transform: uppercase; letter-spacing: 0.15rem; }
+        .user-info { grid-column: 3; text-align: right; line-height: 1.4; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; gap: 1rem; padding: 1rem; }
+            .footer-data-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                align-items: center;
+            }
+            .last-updated, .user-info { text-align: center; }
+            .footer-nav { gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="handleNav('home')">AlphaLine</div>
+        <nav>
+            <a class="nav-link" onclick="handleNav('universes')">My Universes</a>
+            <a class="nav-link" onclick="handleNav('account')">Account</a>
+        </nav>
+    </header>
+
+    <main>
+        <iframe id="content-frame" src="home.html" title="Content Window"></iframe>
+    </main>
+
+    <footer>
+        <div class="footer-nav">
+            <a href="#" class="footer-link">About Us</a>
+            <a href="#" class="footer-link">Contact Us</a>
+            <a href="#" class="footer-link">Changelog</a>
+        </div>
+
+        <div class="footer-data-grid">
+            <div class="last-updated" id="last-updated">SYNCING...</div>
+            <div class="copyright">©2026 Lex Domitor</div>
+            <div class="user-info" id="user-info">LOCALIZING...</div>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation Control
+        function handleNav(page) {
+            document.getElementById('content-frame').src = page + '.html';
+        }
+
+        // PST Offset Calculation
+        function getPSTOffset() {
+            const now = new Date();
+            const pstString = now.toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour12: false});
+            const pstDate = new Date(pstString);
+            const diff = Math.round((pstDate - now) / 3600000);
+            const sign = diff >= 0 ? "+" : "";
+            return `PST ${sign}${diff}H`;
+        }
+
+        // Load Version Data
+        async function loadLastUpdated() {
+            try {
+                const response = await fetch('version.json');
+                if (!response.ok) throw new Error('File not found');
+                const data = await response.json();
+                const bTime = new Date(data.lastUpdated);
+                
+                const timeOps = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+                const dateOps = { month: 'long', day: 'numeric', year: 'numeric' };
+                
+                document.getElementById('last-updated').innerHTML = `
+                    LAST UPDATED<br>
+                    ${bTime.toLocaleTimeString(undefined, timeOps).toUpperCase()} | ${bTime.toLocaleDateString(undefined, dateOps).toUpperCase()}
+                `;
+            } catch (e) {
+                document.getElementById('last-updated').innerHTML = "LAST UPDATED<br>OFFLINE";
+            }
+        }
+
+        // Live Clock Update
+        function updateLiveClock() {
+            const now = new Date();
+            const timeOps = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+            const dateOps = { month: 'long', day: 'numeric', year: 'numeric' };
+            
+            // Safe Zone Extraction
+            let tzName = "UTC";
+            try {
+                const parts = new Intl.DateTimeFormat(undefined, {timeZoneName: 'short'}).formatToParts(now);
+                tzName = parts.find(p => p.type === 'timeZoneName').value;
+            } catch(e) {}
+
+            const region = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
+            const pstRel = getPSTOffset();
+
+            const timeStr = now.toLocaleTimeString(undefined, timeOps).toUpperCase();
+            const dateStr = now.toLocaleDateString(undefined, dateOps).toUpperCase();
+
+            document.getElementById('user-info').innerHTML = `
+                ${region.toUpperCase()} (${tzName}) [${pstRel}]<br>
+                ${timeStr} | ${dateStr}
+            `;
+        }
+
+        // Run
+        updateLiveClock();
+        setInterval(updateLiveClock, 1000);
+        loadLastUpdated();
+    </script>
+</body>
+</html>
