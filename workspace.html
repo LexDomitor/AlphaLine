@@ -8,8 +8,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;800&display=swap');
         :root { --bg: #080808; --accent: #2a2a2a; --text: #fff; --text-dim: #888; }
         
-        * { box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { 
+            height: 100vh; width: 100vw; 
+            background: #000; color: #fff; 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+        }
 
         /* --- LOADER --- */
         #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; pointer-events: none; }
@@ -17,13 +22,66 @@
         .progress-track { width: 100%; height: 2px; background: #111; margin-top: 20px; position: relative; }
         #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s ease; position: absolute; top:0; left:0; }
 
-        /* --- UI BARS (STATIC) --- */
-        .ui-bar { position: fixed; left: 0; width: 100%; background: rgba(20, 20, 20, 0.98); backdrop-filter: blur(20px); z-index: 1000; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; border: 1px solid #333; }
-        .top-nav { top: 0; height: 85px; padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; border-width: 0 0 1px 0; }
-        .brand-block { display: flex; align-items: center; gap: 20px; }
-        .bottom-nav { bottom: 0; height: 55px; padding: 0 3rem; border-width: 1px 0 0 0; display: flex; align-items: center; justify-content: space-between; }
+        /* --- UI BARS --- */
+        .ui-bar { 
+            position: fixed; left: 0; width: 100%; 
+            background: rgba(20, 20, 20, 0.98); 
+            backdrop-filter: blur(20px); 
+            z-index: 1000; 
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; 
+            border: 1px solid #333; 
+        }
         
-        /* Retract UI on Pan */
+        .top-nav { 
+            top: 0; 
+            height: 85px; 
+            padding: 0 3rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            border-width: 0 0 1px 0; 
+        }
+
+        .brand-block { display: flex; align-items: center; gap: 15px; height: 100%; }
+        
+        .exit-btn { 
+            cursor: pointer; 
+            font-size: 1.5rem; 
+            color: #555; 
+            transition: 0.3s; 
+            margin-right: 10px; 
+            display: flex;
+            align-items: center;
+        }
+        .exit-btn:hover { color: #fff; transform: translateX(-5px); }
+
+        .nav-text {
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-text strong {
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 5px;
+            margin-right: 5px;
+        }
+
+        .bottom-nav { 
+            bottom: 0; 
+            height: 60px; 
+            padding: 0 3rem; 
+            border-width: 1px 0 0 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+        
         .is-panning .top-nav { transform: translateY(-100%); opacity: 0; }
         .is-panning .bottom-nav { transform: translateY(100%); opacity: 0; }
 
@@ -41,20 +99,19 @@
             will-change: transform;
         }
 
-        /* --- NODES --- */
+        /* --- NODES & CONTAINERS --- */
         .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; display: flex; flex-direction: column; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .handle { height: 20px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #333; flex-shrink: 0; }
         .node-content { padding: 12px; display: flex; flex-grow: 1; flex-direction: column; gap: 8px; }
         input, textarea { background: #000; border: 1px solid #222; color: #fff; font-size: 0.75rem; padding: 8px; outline: none; width: 100%; box-sizing: border-box; }
-        .img-preview { width: 100%; border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
 
-        /* --- CONTAINER SPECIFICS --- */
         .node-container { width: 500px; min-height: 320px; }
         .container-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; gap: 12px; padding: 12px; flex-grow: 1; position: relative; }
         .quad-layer { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; gap: 12px; padding: 12px; pointer-events: none; }
         .quad { border: 1px dashed rgba(255,255,255,0.05); }
         .quad.active { background: rgba(255,255,255,0.15); border: 1px solid #fff; }
         .node.snapped { position: relative !important; top: auto !important; left: auto !important; width: 100% !important; height: 100% !important; box-shadow: none; border-color: #444; }
+
         .container-footer { height: 32px; border-top: 1px solid #333; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.6rem; color: #666; letter-spacing: 2px; }
         .container-footer:hover { background: #1a1a1a; color: #fff; }
 
@@ -65,7 +122,6 @@
         
         #trash-zone { position: fixed; bottom: 80px; left: 20px; width: 60px; height: 60px; background: rgba(255,50,50,0.1); border: 2px dashed #ff3232; border-radius: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 1100; font-size: 1.5rem; }
         .is-dragging #trash-zone { opacity: 1; }
-        #trash-zone.active { background: rgba(255,50,50,0.4); transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -81,15 +137,15 @@
 
     <nav class="ui-bar top-nav">
         <div class="brand-block">
-            <div style="font-weight:800; letter-spacing:4px; font-size: 1.1rem;">ALPHALINE</div>
-            <div style="width: 1px; height: 24px; background: #333;"></div>
-            <div id="active-name" style="letter-spacing:6px; font-size:0.75rem; text-transform:uppercase; font-weight:300; color: #888;">UNIVERSE</div>
+            <div class="exit-btn" onclick="triggerExitSequence()">←</div>
+            <div class="nav-text">
+                <strong>ALPHALINE</strong> | CREATION PLANE | <span id="active-name" style="margin-left: 10px; color: #555;">UNIVERSE</span>
+            </div>
         </div>
-        <div onclick="triggerExitSequence()" style="cursor:pointer; font-size: 0.7rem; letter-spacing:2px; color: #555; border: 1px solid #333; padding: 8px 15px; border-radius: 4px;">EXIT PLANE</div>
     </nav>
 
     <footer class="ui-bar bottom-nav">
-        <div style="font-size: 0.6rem; color: #444; letter-spacing: 1px;">SYSTEM STATUS: ACTIVE</div>
+        <div id="system-status" style="font-size: 0.6rem; color: #666; letter-spacing: 1px; font-weight: 400; text-transform: uppercase;">System Standby</div>
         <div id="coord-display" style="font-size: 0.65rem; color: #888; font-family: monospace;">0, 0 | 100%</div>
     </footer>
 
@@ -107,6 +163,7 @@
         const viewport = document.getElementById('viewport');
         const world = document.getElementById('world');
         const trash = document.getElementById('trash-zone');
+        const statusText = document.getElementById('system-status');
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         
@@ -135,25 +192,21 @@
             document.getElementById('coord-display').innerText = `${displayX}, ${displayY} | ${Math.round(scale * 100)}%`;
         }
 
-        // --- ZOOM (NON-LINEAR) ---
         viewport.addEventListener('wheel', (e) => {
             e.preventDefault();
             const oldScale = scale;
             const sensitivity = 0.08;
             const delta = -Math.sign(e.deltaY) * sensitivity;
             scale = Math.min(Math.max(0.15, scale + delta), 3);
-
             const rect = viewport.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-
             worldPos.x = mouseX - (mouseX - worldPos.x) * (scale / oldScale);
             worldPos.y = mouseY - (mouseY - worldPos.y) * (scale / oldScale);
             updateWorld();
             sync();
         }, { passive: false });
 
-        // --- PANNING ---
         let isPanning = false, startX, startY;
         viewport.onmousedown = (e) => {
             if(e.target.id !== 'viewport' && e.target.id !== 'world') return;
@@ -293,6 +346,9 @@
 
         function sync() {
             if(!activeUniverse) return;
+            statusText.innerText = "Syncing Plane...";
+            statusText.style.color = "#fff";
+            
             activeUniverse.timeline = Array.from(document.querySelectorAll('.node')).map(n => ({
                 boxId: n.dataset.id, type: n.dataset.type,
                 x: n.classList.contains('snapped') ? 0 : parseInt(n.style.left),
@@ -304,13 +360,19 @@
             }));
             activeUniverse.camera = worldPos; activeUniverse.scale = scale;
             localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+            
+            setTimeout(() => {
+                const now = new Date();
+                statusText.innerText = `Last Sync: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                statusText.style.color = "#666";
+            }, 300);
         }
 
         function triggerExitSequence() {
             sync();
             const l = document.getElementById('loader');
             l.style.display = 'flex'; l.style.opacity = '1';
-            document.getElementById('loader-msg').innerText = "Syncing Universe...";
+            document.getElementById('loader-msg').innerText = "Exiting Plane...";
             setTimeout(() => { window.location.href = 'universes.html'; }, 1000);
         }
     </script>
