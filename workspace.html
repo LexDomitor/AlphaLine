@@ -44,12 +44,17 @@
         #viewport { width: 100vw; height: 100vh; cursor: grab; background: var(--bg); position: relative; overflow: hidden; }
         #world { position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; background-image: radial-gradient(circle, #444 1.5px, transparent 1.5px), linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px); background-size: 100px 100px; }
 
-        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; display: flex; flex-direction: column; z-index: 10; transition: box-shadow 0.2s; }
+        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 240px; display: flex; flex-direction: column; z-index: 10; transition: box-shadow 0.2s; }
         .node:hover { box-shadow: 0 0 20px rgba(255,255,255,0.05); }
-        .handle { height: 18px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #222; opacity: 0.3; transition: 0.3s; }
+        
+        .handle { height: 18px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #222; opacity: 0.3; transition: 0.3s; position: relative; }
         .node:hover .handle { opacity: 1; }
         
-        .node-content { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+        /* RESIZE HANDLE */
+        .resizer { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; z-index: 100; background: linear-gradient(135deg, transparent 50%, #333 50%); border-bottom-right-radius: 4px; opacity: 0; transition: 0.3s; }
+        .node:hover .resizer { opacity: 1; }
+
+        .node-content { padding: 10px; display: flex; flex-direction: column; gap: 4px; height: 100%; }
         
         /* SEAMLESS INPUTS */
         input, textarea { 
@@ -65,17 +70,17 @@
         /* IMAGE NODE REFINEMENT */
         .node-image { height: auto !important; }
         .node-image .node-title { 
-            text-transform: none !important; /* Remove Caps */
+            text-transform: none !important; 
             font-weight: 400; 
             letter-spacing: 0px; 
             color: var(--caption); 
-            font-size: 0.7rem; 
+            font-size: 0.75rem; 
             margin-top: 4px;
+            height: auto;
         }
         .img-preview { width: 100%; line-height: 0; }
         .img-preview img { width: 100%; height: auto; display: block; border-radius: 2px; }
         .upload-btn { background: #1a1a1a; color: #555; border: 1px solid #252525; padding: 15px; cursor: pointer; font-size: 0.6rem; letter-spacing: 2px; width: 100%; border-radius: 2px; }
-        .upload-btn:hover { background: #222; color: #fff; }
 
         .node-container { width: 500px; min-height: 320px; }
         .container-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 212px; gap: 12px; padding: 12px; position: relative; }
@@ -83,6 +88,7 @@
         .quad { border: 1px dashed rgba(255,255,255,0.05); }
         .quad.active { background: rgba(255,255,255,0.1); border: 1px solid #fff; }
         .node.snapped { position: relative !important; width: 100% !important; height: 100% !important; left: auto !important; top: auto !important; }
+        .node.snapped .resizer { display: none; } /* Disable manual resize when snapped to grid */
 
         .tool-dock { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 42px; background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1100; }
         .tool-item { width: 30px; height: 30px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.65rem; font-weight: 800; transition: 0.2s; }
@@ -156,6 +162,7 @@
             document.getElementById('coord-display').innerText = `${displayX}, ${displayY} | ${Math.round(scale * 100)}%`;
         }
 
+        // AUTO-EXPAND LOGIC (Captions + Textareas)
         function autoGrow(el) { 
             if(!el) return;
             el.style.height = "5px"; 
@@ -190,7 +197,7 @@
             const type = e.dataTransfer.getData('nodeType');
             if(type) {
                 const rect = viewport.getBoundingClientRect();
-                const x = (e.clientX - rect.left - worldPos.x) / scale - 110;
+                const x = (e.clientX - rect.left - worldPos.x) / scale - 120;
                 const y = (e.clientY - rect.top - worldPos.y) / scale - 20;
                 createNode({ type, x, y }, false);
             }
@@ -199,7 +206,7 @@
         function markInit(el) {
             const node = el.closest('.node');
             node.dataset.initialized = "true";
-            if(el.tagName === "TEXTAREA") autoGrow(el);
+            autoGrow(el); // Expand caption or text
             sync();
         }
 
@@ -223,6 +230,7 @@
             node.dataset.type = data.type;
             node.dataset.initialized = (isLoad || data.title || data.body || data.url) ? "true" : "false";
             if(data.url) node.dataset.base64 = data.url;
+            if(data.w) node.style.width = data.w + 'px';
             
             if (!data.parent) {
                 node.style.left = data.x + 'px'; node.style.top = data.y + 'px';
@@ -240,9 +248,9 @@
                 html += `<div class="img-preview">${data.url ? `<img src="${data.url}">` : ''}</div>
                          <button class="upload-btn" onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}">DRAG OR SELECT IMAGE</button>
                          <input type="file" style="display:none" onchange="handleImg(this)">
-                         <input class="node-title" placeholder="Add a caption..." value="${data.title||''}" oninput="markInit(this)">`;
+                         <textarea class="node-title" placeholder="Add a caption..." oninput="markInit(this)">${data.title||''}</textarea>`;
             }
-            html += `</div>`;
+            html += `</div><div class="resizer"></div>`;
             node.innerHTML = html;
 
             if(data.parent) {
@@ -257,10 +265,13 @@
                 snap: PlaneEngine.snap 
             });
 
-            if(isLoad) {
-                const tx = node.querySelector('textarea');
-                if(tx) setTimeout(() => autoGrow(tx), 10);
-            }
+            PlaneEngine.makeResizable(node, scale, sync);
+
+            // Initial auto-expand for loaded data
+            setTimeout(() => {
+                const els = node.querySelectorAll('textarea');
+                els.forEach(el => autoGrow(el));
+            }, 50);
         }
 
         function sync() {
@@ -273,6 +284,7 @@
                     boxId: n.dataset.id, type: n.dataset.type,
                     x: n.classList.contains('snapped') ? 0 : parseInt(n.style.left),
                     y: n.classList.contains('snapped') ? 0 : parseInt(n.style.top),
+                    w: parseInt(n.style.width) || 240,
                     parent: n.classList.contains('snapped') ? n.closest('.node-container').dataset.id : null,
                     title: n.querySelector('.node-title')?.value || "",
                     body: n.querySelector('textarea')?.value || "",
