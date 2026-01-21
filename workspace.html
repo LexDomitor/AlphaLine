@@ -7,9 +7,9 @@
     <style>
         :root {
             --bg-color: #0c0c0c;
-            --accent: #222;
+            --accent: #333; /* Darker, sharper accent */
             --text: #ffffff;
-            --text-dim: #444;
+            --text-dim: #a0a0a0; /* Increased brightness for visibility */
             --block-bg: #161616;
             --ui-speed: 0.8s cubic-bezier(0.8, 0, 0.2, 1);
         }
@@ -25,9 +25,16 @@
             position: fixed; top: 0; left: 0; width: 100%;
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 3rem; border-bottom: 1px solid var(--accent);
-            background: var(--bg-color); height: 70px; box-sizing: border-box;
+            background: var(--bg-color); height: 80px; box-sizing: border-box;
             z-index: 1000; transition: transform var(--ui-speed);
         }
+
+        .brand-section { display: flex; flex-direction: column; gap: 5px; }
+        .back-arrow { 
+            cursor: pointer; font-size: 1.2rem; color: #fff; 
+            width: fit-content; transition: 0.2s; 
+        }
+        .back-arrow:hover { transform: translateX(-5px); color: var(--text-dim); }
 
         /* --- Retractable Sidebar --- */
         .tool-dock {
@@ -44,10 +51,10 @@
 
         /* --- Workspace Canvas --- */
         #canvas {
-            margin-left: 60px; margin-top: 70px;
-            width: calc(100vw - 60px); height: calc(100vh - 70px);
+            margin-left: 60px; margin-top: 80px;
+            width: calc(100vw - 60px); height: calc(100vh - 80px);
             position: relative; overflow: hidden;
-            background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+            background-image: radial-gradient(#222 0.5px, transparent 0.5px);
             background-size: 40px 40px;
             transition: all var(--ui-speed);
         }
@@ -57,46 +64,44 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
+            transition: opacity 0.8s ease;
         }
         .loader-content { text-align: center; width: 280px; }
         .progress-track { width: 100%; height: 2px; background: #1a1a1a; margin-top: 20px; }
         .progress-bar { width: 0%; height: 100%; background: #fff; transition: width 1.5s ease-in-out; }
 
-        /* --- Data Blocks --- */
+        /* --- Data Blocks (Events) --- */
         .data-block {
-            position: absolute; width: 280px; min-height: 100px;
+            position: absolute; width: 300px;
             background: var(--block-bg); border: 1px solid var(--accent);
-            border-radius: 12px; padding: 15px; cursor: move;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-            animation: expandBloom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 4px; padding: 15px; cursor: move;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+            animation: expandBloom 0.4s ease-out;
         }
-        @keyframes expandBloom {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .block-header {
+            display: flex; justify-content: space-between; margin-bottom: 10px;
+            border-bottom: 1px solid #222; padding-bottom: 5px;
+        }
+        .index-input { 
+            background: transparent; border: none; color: #fff; 
+            font-size: 0.7rem; font-weight: 800; width: 100px; outline: none;
         }
         .block-textarea {
-            width: 100%; min-height: 80px; background: #000; border: none;
-            border-radius: 6px; color: #ccc; padding: 10px; resize: none; outline: none;
+            width: 100%; min-height: 100px; background: #000; border: 1px solid #222;
+            color: #fff; padding: 10px; resize: vertical; outline: none; font-size: 0.8rem;
+            box-sizing: border-box;
         }
 
         .tool-item {
-            width: 40px; height: 40px; border: 1px solid var(--accent);
-            border-radius: 8px; cursor: grab; display: flex; align-items: center; justify-content: center;
-            background: #111; color: white;
+            width: 40px; height: 40px; border: 1px solid #444;
+            border-radius: 4px; cursor: grab; display: flex; align-items: center; justify-content: center;
+            background: #111; color: white; transition: 0.2s;
         }
+        .tool-item:hover { background: #fff; color: #000; }
 
-        /* Return Arrow / Exit Logic */
-        .exit-btn {
-            color: var(--text-dim); text-transform: uppercase; font-size: 0.65rem; 
-            letter-spacing: 2px; cursor: pointer; transition: 0.3s;
-        }
-        .exit-btn:hover { color: #fff; }
-
-        /* Trigger button to bring UI back if needed */
         #ui-restore {
             position: fixed; bottom: 20px; right: 20px; width: 30px; height: 30px;
-            border-radius: 50%; border: 1px solid #222; opacity: 0.2; cursor: pointer;
+            border-radius: 50%; border: 1px solid #444; opacity: 0.2; cursor: pointer;
             z-index: 2000; transition: 0.3s;
         }
         #ui-restore:hover { opacity: 1; background: #fff; }
@@ -106,20 +111,23 @@
 
     <div id="loader">
         <div class="loader-content">
-            <div id="loader-msg" style="font-size: 0.7rem; letter-spacing: 2px; color: #888; text-transform: uppercase;">Transporting...</div>
+            <div id="loader-msg" style="font-size: 0.7rem; letter-spacing: 2px; color: #fff; text-transform: uppercase;">Initializing Plane...</div>
             <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
         </div>
     </div>
 
     <nav class="top-nav">
-        <div style="font-weight:800; letter-spacing:2px;">ALPHALINE <span style="color:var(--text-dim); font-weight:300;">| Creation Plane</span></div>
-        <div id="active-name" style="font-weight:300; text-transform:uppercase; letter-spacing:2px; font-size:0.85rem;">---</div>
-        <div class="exit-btn" onclick="exitWorkspace()">Return to Archive</div>
+        <div class="brand-section">
+            <div style="font-weight:800; letter-spacing:2px; font-size: 1.1rem;">ALPHALINE</div>
+            <div class="back-arrow" onclick="triggerExitSequence()">←</div>
+        </div>
+        <div id="active-name" style="font-weight:400; text-transform:uppercase; letter-spacing:3px; font-size:0.8rem; color: #fff;">---</div>
+        <div style="font-size: 0.6rem; color: #555; letter-spacing: 1px;">AUTO-SYNC ACTIVE</div>
     </nav>
 
     <div class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="event.dataTransfer.setData('type','block')">+</div>
-        <div style="margin-top:auto; margin-bottom: 20px; font-size: 0.5rem; color: #333;">TOOLS</div>
+        <div class="tool-item" draggable="true" ondragstart="event.dataTransfer.setData('type','event')">+</div>
+        <div style="margin-top:auto; margin-bottom: 20px; font-size: 0.5rem; color: #555; letter-spacing: 1px;">DRAG</div>
     </div>
 
     <div id="canvas" ondragover="event.preventDefault()" ondrop="handleDrop(event)"></div>
@@ -128,55 +136,109 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const activeUniverse = JSON.parse(localStorage.getItem('alphaline_universes') || "[]").find(u => u.id == params.get('id'));
+        const universeId = params.get('id');
+        let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+        let activeUniverse = universes.find(u => u.id == universeId);
         
+        // Initialize timeline object if it doesn't exist
+        if (activeUniverse && !activeUniverse.timeline) {
+            activeUniverse.timeline = {}; 
+        }
+
         if (activeUniverse) {
             document.getElementById('active-name').innerText = activeUniverse.name;
             document.getElementById('loader-msg').innerText = `Transporting to ${activeUniverse.name}`;
         }
 
-        // --- The Sequence ---
         window.onload = () => {
             const bar = document.getElementById('progress-bar');
             setTimeout(() => bar.style.width = '100%', 100);
+            
+            // Render existing blocks from timeline
+            if (activeUniverse.timeline) {
+                Object.keys(activeUniverse.timeline).forEach(year => {
+                    const data = activeUniverse.timeline[year];
+                    createBlock(data.x, data.y, year, data.content);
+                });
+            }
 
             setTimeout(() => {
                 document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loader').style.display = 'none';
-                    
-                    // Signal the Master Shell to hide its header/footer 
-                    // This covers the case where the user refreshes inside the workspace
                     window.parent.postMessage('RETRACT_FRAME', '*');
-                    
-                    // Trigger the Workspace internal UI retraction
                     document.body.classList.add('focused-mode');
-                }, 1000);
+                }, 800);
             }, 1800);
         };
 
-        // --- EXIT LOGIC ---
-        function exitWorkspace() {
-            // Signal the Master Shell to restore its header/footer
-            window.parent.postMessage('RESTORE_FRAME', '*');
+        function syncData() {
+            const blocks = document.querySelectorAll('.data-block');
+            activeUniverse.timeline = {}; // Reset and rebuild from DOM
             
-            // Navigate back to the universe archive
-            window.location.href = 'universes.html';
+            blocks.forEach(block => {
+                const year = block.querySelector('.index-input').value || "UNKNOWN_DATE";
+                activeUniverse.timeline[year] = {
+                    content: block.querySelector('.block-textarea').value,
+                    x: parseInt(block.style.left),
+                    y: parseInt(block.style.top)
+                };
+            });
+
+            const index = universes.findIndex(u => u.id == universeId);
+            universes[index] = activeUniverse;
+            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+        }
+
+        function triggerExitSequence() {
+            syncData(); // Final Sync
+            
+            // Fade out the workspace
+            document.body.style.transition = "opacity 0.5s ease";
+            document.body.style.opacity = "0";
+
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                const bar = document.getElementById('progress-bar');
+                const msg = document.getElementById('loader-msg');
+                
+                msg.innerText = "Returning to the Multiverse Hub...";
+                bar.style.width = '0%';
+                loader.style.display = 'flex';
+                loader.style.opacity = '1';
+                document.body.style.opacity = "1";
+
+                setTimeout(() => bar.style.width = '100%', 100);
+
+                setTimeout(() => {
+                    window.parent.postMessage('RESTORE_FRAME', '*');
+                    window.location.href = 'universes.html';
+                }, 1600);
+            }, 500);
         }
 
         function handleDrop(e) {
             e.preventDefault();
             const canvas = document.getElementById('canvas');
             const rect = canvas.getBoundingClientRect();
-            createBlock(e.clientX - rect.left - 140, e.clientY - rect.top - 50);
+            createBlock(e.clientX - rect.left - 150, e.clientY - rect.top - 50);
+            syncData();
         }
 
-        function createBlock(x, y) {
+        function createBlock(x, y, index = "YEAR/ID", content = "") {
             const block = document.createElement('div');
             block.className = 'data-block';
             block.style.left = x + 'px';
             block.style.top = y + 'px';
-            block.innerHTML = `<textarea class="block-textarea" placeholder="Data point..."></textarea>`;
+            
+            block.innerHTML = `
+                <div class="block-header">
+                    <input type="text" class="index-input" value="${index}" oninput="syncData()">
+                    <div style="font-size: 0.5rem; color: #444;">EVENT</div>
+                </div>
+                <textarea class="block-textarea" placeholder="Describe the chain of events..." oninput="syncData()">${content}</textarea>
+            `;
+            
             document.getElementById('canvas').appendChild(block);
             makeDraggable(block);
         }
@@ -184,9 +246,13 @@
         function makeDraggable(el) {
             let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
             el.onmousedown = (e) => {
-                if (e.target.tagName === 'TEXTAREA') return;
+                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
                 p3 = e.clientX; p4 = e.clientY;
-                document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+                document.onmouseup = () => { 
+                    document.onmouseup = null; 
+                    document.onmousemove = null;
+                    syncData(); 
+                };
                 document.onmousemove = (e) => {
                     p1 = p3 - e.clientX; p2 = p4 - e.clientY;
                     p3 = e.clientX; p4 = e.clientY;
