@@ -173,7 +173,12 @@
         window.onmouseup = () => { if(isPanning) { isPanning = false; document.body.classList.remove('hide-ui'); sync(); } };
 
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
-        function recenter() { scale = 1; worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; updateWorld(); sync(); }
+        function recenter() { 
+            scale = 1; 
+            worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; 
+            updateWorld(); 
+            sync(); 
+        }
 
         viewport.ondragover = e => e.preventDefault();
         viewport.ondrop = e => {
