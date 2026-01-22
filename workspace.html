@@ -59,7 +59,6 @@
         }
         input:hover, textarea:hover, input:focus, textarea:focus { border-color: #333; background: rgba(255,255,255,0.03); }
         
-        /* Unified Gallery Traits */
         .node-title { 
             font-weight: 400; color: var(--caption); font-size: 0.75rem; 
             text-transform: none; letter-spacing: 0; font-family: 'Inter', sans-serif;
@@ -112,6 +111,7 @@
         <div class="tool-item" draggable="true" ondragstart="sd(event,'container')">C</div>
         <div class="tool-item" draggable="true" ondragstart="sd(event,'text')">T</div>
         <div class="tool-item" draggable="true" ondragstart="sd(event,'image')">I</div>
+        <div class="tool-item" onclick="recenter()" style="cursor:pointer; border-style:dashed; color:#666;">R</div>
     </aside>
 
     <div id="viewport"><div id="world"></div></div>
@@ -173,6 +173,19 @@
         window.onmouseup = () => { if(isPanning) { isPanning = false; document.body.classList.remove('hide-ui'); sync(); } };
 
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
+        function recenter() { scale = 1; worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; updateWorld(); sync(); }
+
+        viewport.ondragover = e => e.preventDefault();
+        viewport.ondrop = e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('nodeType');
+            if(type) {
+                const rect = viewport.getBoundingClientRect();
+                const x = (e.clientX - rect.left - worldPos.x) / scale - 120;
+                const y = (e.clientY - rect.top - worldPos.y) / scale - 20;
+                createNode({ type, x, y }, false);
+            }
+        };
 
         function markInit(el) {
             const node = el.closest('.node');
@@ -256,7 +269,6 @@
 
         function triggerExitSequence() {
             sync();
-            // Signal index.html to bring back header/footer panels
             window.parent.postMessage('RESTORE_FRAME', '*');
             
             const loader = document.getElementById('loader');
@@ -265,10 +277,8 @@
             progressBar.style.width = '100%';
             
             setTimeout(() => {
-                // Return to Hub and automatically land on the Universes page
                 const hub = window.top;
                 hub.document.getElementById('content-frame').src = 'universes.html';
-                // Remove the workspace class to ensure UI stays visible
                 hub.document.body.classList.remove('workspace-mode');
             }, 500);
         }
