@@ -6,7 +6,7 @@
     <title>AlphaLine | Workspace</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
-        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; --accent: #fff; }
+        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; --accent: #fff; --danger: #ff4444; }
         
         html, body { 
             margin: 0; padding: 0; height: 100vh; width: 100vw; 
@@ -32,9 +32,7 @@
 
         /* --- PLANE CONTAINER & GRID --- */
         #plane-container { 
-            width: 100vw; 
-            height: calc(100vh - 65px); 
-            margin-top: 65px;
+            width: 100vw; height: calc(100vh - 65px); margin-top: 65px;
             background-color: #000;
             background-image: 
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
@@ -43,37 +41,36 @@
                 linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
             background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
             background-position: 0px 0px;
-            position: relative;
-            overflow: hidden;
-            cursor: crosshair;
+            position: relative; overflow: hidden; cursor: crosshair;
         }
 
         /* --- TIMELINE HUD --- */
         #timeline-hud {
             position: fixed; left: 50%; top: 105px; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 10px; 
-            z-index: 1500;
+            display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 1500;
         }
         #timeline-bar {
             width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); 
-            border: 2px solid var(--accent); border-radius: 4px;
-            position: relative;
+            border: 2px solid var(--accent); border-radius: 4px; position: relative;
         }
         .timeline-axis {
             position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
             background: rgba(255, 255, 255, 0.2); transform: translateY(-50%); pointer-events: none;
         }
 
-        /* --- MARKERS & BOXES --- */
-        .year-dot { 
-            position: absolute; width: 30px; height: 30px; background: #fff; 
-            border-radius: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; 
-        }
-        .year-line { 
-            position: absolute; width: 2px; height: 20px; background: rgba(255,255,255,0.5); 
-            top: 50%; transform: translate(-50%, -50%); z-index: 10; transition: 0.2s;
-        }
+        /* --- MARKERS & SELECTION --- */
+        .year-dot, .year-line { cursor: pointer; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .year-dot { position: absolute; width: 30px; height: 30px; background: #fff; border-radius: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; }
+        .year-line { position: absolute; width: 2px; height: 20px; background: rgba(255,255,255,0.5); top: 50%; transform: translate(-50%, -50%); z-index: 10; }
         .year-line:hover { background: #fff; height: 30px; }
+
+        /* Selection Glow */
+        .selected-marker { 
+            box-shadow: 0 0 20px 5px rgba(255,255,255,0.4); 
+            background: #fff !important; 
+            height: 35px !important; 
+            z-index: 30 !important;
+        }
 
         .year-box {
             position: absolute; background: #000; border: 1px solid #444;
@@ -84,10 +81,21 @@
         .box-max { left: 100%; margin-left: 20px; top: 50%; transform: translateY(-50%); }
         .box-above { bottom: 100%; margin-bottom: 20px; left: 50%; transform: translateX(-50%); }
         .blip-box { opacity: 0; transition: opacity 0.2s ease; }
-        .year-line:hover .blip-box { opacity: 1; }
+        .year-line:hover .blip-box, .selected-marker .blip-box { opacity: 1; }
+
+        /* --- GRID OBJECT --- */
+        #grid-object {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            padding: 40px 80px; background: rgba(8,8,8,0.9); border: 1px solid #333;
+            display: none; flex-direction: column; align-items: center; gap: 10px;
+            pointer-events: none; z-index: 100;
+        }
+        #grid-object h2 { font-family: 'JetBrains Mono'; font-size: 2rem; margin: 0; letter-spacing: 5px; }
 
         /* --- CONTROLS --- */
         .timeline-controls { display: flex; gap: 8px; }
+        .tm-btn.danger { color: var(--danger); border-color: #311; }
+        .tm-btn.danger:hover { background: #200; border-color: var(--danger); }
 
         /* --- MODAL --- */
         #year-modal {
@@ -99,8 +107,6 @@
         .modal-input { background: #000; border: 1px solid #444; color: #fff; width: 100%; padding: 10px; font-family: 'JetBrains Mono'; text-align: center; margin-bottom: 20px; outline: none; }
         .tm-btn { background: #111; border: 1px solid #333; color: #666; font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
         .tm-btn:hover { color: #fff; border-color: #fff; }
-
-        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -128,19 +134,25 @@
     </div>
 
     <div id="plane-container">
+        <div id="grid-object">
+            <div style="font-size: 0.5rem; color: #666; letter-spacing: 2px;">ACTIVE TEMPORAL COORDINATE</div>
+            <h2 id="grid-year-display">0000</h2>
+        </div>
+        
         <div id="timeline-hud">
             <div id="timeline-bar"></div>
             <div class="timeline-controls">
                 <button id="distribute-btn" class="tm-btn" onclick="toggleDistribution()">Distribute Years</button>
                 <button class="tm-btn" onclick="openYearModal()">+ New Year</button>
+                <button id="delete-btn" class="tm-btn danger" style="display:none;" onclick="handleDeleteYear()">Delete Year</button>
             </div>
         </div>
-        <canvas id="plane-canvas"></canvas>
     </div>
 
     <script>
         let currentUniverse = { years: [] };
         let isDistributed = false;
+        let selectedYear = null;
         let panX = 0, panY = 0, gridZoom = 1;
         let isPanningGrid = false, startX, startY;
 
@@ -206,6 +218,25 @@
             closeYearModal();
         }
 
+        function selectYear(y) {
+            selectedYear = y;
+            document.getElementById('grid-year-display').innerText = y;
+            document.getElementById('grid-object').style.display = 'flex';
+            document.getElementById('delete-btn').style.display = 'block';
+            renderTimelineMarkers();
+        }
+
+        function handleDeleteYear() {
+            if (selectedYear === null) return;
+            if (confirm(`CAUTION: Delete year ${selectedYear} and all associated data?`)) {
+                currentUniverse.years = currentUniverse.years.filter(y => y !== selectedYear);
+                selectedYear = null;
+                document.getElementById('grid-object').style.display = 'none';
+                document.getElementById('delete-btn').style.display = 'none';
+                renderTimelineMarkers();
+            }
+        }
+
         function renderTimelineMarkers() {
             const bar = document.getElementById('timeline-bar');
             bar.innerHTML = '<div class="timeline-axis"></div>';
@@ -227,9 +258,14 @@
                 }
 
                 marker.style.left = pos + '%';
+                marker.onclick = (e) => { e.stopPropagation(); selectYear(y); };
+
+                // Apply dynamic classing
                 if (idx === 0) { marker.className = 'year-dot'; box.classList.add('box-min'); }
                 else if (idx === years.length - 1) { marker.className = 'year-dot'; box.classList.add('box-max'); }
                 else { marker.className = 'year-line'; box.classList.add('box-above', 'blip-box'); }
+
+                if (y === selectedYear) marker.classList.add('selected-marker');
 
                 marker.appendChild(box);
                 bar.appendChild(marker);
