@@ -13,36 +13,45 @@
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2rem; z-index: 1000;
+            display: flex; align-items: center; 
+            padding: 0 2rem; /* This defines the left-side padding */
+            z-index: 1000;
         }
 
         .brand-block { display: flex; align-items: center; gap: 20px; }
         .exit-btn { cursor: pointer; color: var(--text-dim); transition: 0.3s; font-size: 1.2rem; }
         .exit-btn:hover { color: #fff; }
 
-        /* Removed the | separator via CSS and HTML structure */
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; }
-        .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; margin-right: 10px; }
-        .universe-name { color: #fff; border-left: 1px solid #333; padding-left: 15px; }
+        .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
+        
+        /* The separator between ALPHALINE and CREATION PLANE */
+        .title-sep { margin: 0 15px; color: #333; }
+        
+        /* The Project Name: No | separator here now */
+        .universe-name { color: #fff; margin-left: 15px; }
 
-        /* FIXED: Anchored to right with padding to prevent clipping */
+        /* DYNAMIC ALIGNMENT FIX */
         .status-block { 
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            padding-right: 2rem; /* Perfectly mirrors the left padding of workspace-header */
             display: flex; 
             align-items: center; 
             gap: 40px; 
             text-align: right; 
-            margin-right: 10px; /* Buffer from screen edge */
         }
         
-        #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; min-width: 120px; }
+        #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; }
         
         .clock-block { 
             font-family: 'JetBrains Mono', monospace; 
             font-size: 0.65rem; 
             color: var(--text-dim); 
             line-height: 1.4;
-            white-space: nowrap; /* Prevents text wrapping if container is small */
+            white-space: nowrap; 
         }
 
         #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; position: relative; }
@@ -55,9 +64,10 @@
         <div class="brand-block">
             <div class="exit-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> CREATION PLANE <span id="active-universe-name" class="universe-name">...</span>
+                <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span id="active-universe-name" class="universe-name">...</span>
             </div>
         </div>
+        
         <div class="status-block">
             <div id="save-indicator">Project Saved</div>
             <div id="workspace-clock" class="clock-block"></div>
@@ -81,10 +91,7 @@
 
         function updateClock() {
             const now = new Date();
-            // Get location name
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' ');
-            
-            // Calculate PST (Pacific Standard Time)
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
             const pstStr = pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase();
 
