@@ -6,28 +6,43 @@
     <title>AlphaLine | Workspace</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
-        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; --accent: #fff; }
         
-        html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        :root { 
+            --bg: #000; 
+            --ui-bg: #080808; 
+            --text-dim: #666; 
+            --accent: #fff; 
+        }
+        
+        html, body { 
+            margin: 0; padding: 0; height: 100vh; width: 100vw; 
+            background: var(--bg); color: #fff; 
+            font-family: 'Inter', sans-serif; overflow: hidden; 
+        }
 
+        /* --- Header: Fixed 65px --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
             display: flex; align-items: center; padding: 0 2rem; z-index: 2000;
         }
+
         .brand-block { display: flex; align-items: center; gap: 20px; }
         .exit-btn { cursor: pointer; color: var(--text-dim); transition: 0.3s; font-size: 1.2rem; }
         .exit-btn:hover { color: #fff; }
         
-        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; }
+        .nav-text { 
+            font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; 
+            color: var(--text-dim); display: flex; align-items: center; 
+        }
         .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
         .title-sep { margin: 0 15px; color: #333; }
-        .universe-name { color: #fff; margin-left: 15px; }
+        .universe-name { color: #fff; }
 
-        /* THE FIX: Absolute right anchor with right-aligned text */
+        /* --- Status Block: Fixed Right Anchor --- */
         .status-block { 
             position: absolute; 
-            right: 2rem; 
+            right: 2rem; /* Matches left side padding */
             top: 50%; 
             transform: translateY(-50%); 
             display: flex; 
@@ -36,15 +51,17 @@
             text-align: right; 
         }
         #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; }
+        
         .clock-block { 
             font-family: 'JetBrains Mono', monospace; 
             font-size: 0.65rem; 
             color: var(--text-dim); 
             line-height: 1.4; 
             white-space: nowrap; 
-            text-align: right; 
+            text-align: right; /* Forces growth toward the left */
         }
 
+        /* --- Timeline HUD --- */
         #timeline-wrapper {
             position: absolute;
             left: 50%;
@@ -69,7 +86,12 @@
             pointer-events: auto;
         }
 
-        .timeline-controls { display: flex; gap: 10px; pointer-events: auto; }
+        .timeline-controls { 
+            display: flex; 
+            gap: 10px; 
+            pointer-events: auto; 
+        }
+
         .tm-btn {
             background: #111; border: 1px solid #333; color: #666;
             font-size: 0.55rem; padding: 5px 12px; letter-spacing: 1px;
@@ -113,22 +135,28 @@
 
     <script src="creation-plane.js"></script>
     <script>
+        // --- DATA & DYNAMIC UI ---
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
-        if(activeUniverse) document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
+        
+        if(activeUniverse) {
+            document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
+        }
 
         function updateClock() {
             const now = new Date();
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' ');
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
             const pstStr = pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase();
+            
             document.getElementById('workspace-clock').innerHTML = 
                 `${region.toUpperCase()} | ${now.toLocaleTimeString().toUpperCase()}<br>` +
                 `${pstStr} PST | ${now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
-        setInterval(updateClock, 1000); updateClock();
+        setInterval(updateClock, 1000); 
+        updateClock();
 
         function exitWorkspace() {
             window.parent.postMessage('RESTORE_FRAME', '*');
@@ -137,6 +165,7 @@
             hub.document.body.classList.remove('workspace-mode');
         }
 
+        // --- HUD DRAG LOGIC ---
         const wrapper = document.getElementById('timeline-wrapper');
         const handle = document.getElementById('timeline-object');
         let isDragging = false;
@@ -144,27 +173,37 @@
 
         handle.addEventListener('mousedown', (e) => {
             isDragging = true;
+            // Capture offset from top-left of the wrapper
             startPos = { x: e.clientX - wrapper.offsetLeft, y: e.clientY - wrapper.offsetTop };
             handle.style.cursor = 'grabbing';
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
+
             let x = e.clientX - startPos.x;
             let y = e.clientY - startPos.y;
-            const minX = wrapper.offsetWidth / 2;
-            const maxX = window.innerWidth - (wrapper.offsetWidth / 2);
-            const minY = 65; // HEADER HEIGHT
+
+            // Boundaries
+            const minX = 0;
+            const maxX = window.innerWidth - wrapper.offsetWidth;
+            const minY = 65; // SNUG AGAINST TOP BAR
             const maxY = window.innerHeight - wrapper.offsetHeight;
+
+            // Clamp
             x = Math.max(minX, Math.min(x, maxX));
             y = Math.max(minY, Math.min(y, maxY));
+
             wrapper.style.left = x + 'px';
             wrapper.style.top = y + 'px';
             wrapper.style.bottom = 'auto';
-            wrapper.style.transform = 'translateX(-50%)';
+            wrapper.style.transform = 'none'; // Clear initial CSS centering
         });
 
-        document.addEventListener('mouseup', () => { isDragging = false; handle.style.cursor = 'grab'; });
+        document.addEventListener('mouseup', () => { 
+            isDragging = false; 
+            handle.style.cursor = 'grab'; 
+        });
 
         function resetTimeline() {
             wrapper.style.left = '50%';
@@ -173,6 +212,7 @@
             wrapper.style.transform = 'translateX(-50%)';
         }
 
+        // Initialize Plane
         const plane = new CreationPlane('plane-canvas');
     </script>
 </body>
