@@ -36,16 +36,17 @@
             height: calc(100vh - 65px); 
             margin-top: 65px;
             background-color: #000;
-            /* Sub-grid (small squares) */
+            /* Grid Pattern setup */
             background-image: 
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                /* Main-grid (large squares) */
                 linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
             background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+            background-position: 0px 0px;
             position: relative;
             overflow: hidden;
+            cursor: crosshair;
         }
 
         /* --- TOP-FIXED TIMELINE HUD --- */
@@ -64,6 +65,7 @@
             width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); 
             border: 2px solid var(--accent); border-radius: 4px;
             position: relative;
+            cursor: ew-resize; /* Signals temporal interaction */
         }
         .timeline-axis {
             position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
@@ -106,7 +108,7 @@
         .tm-btn { background: #111; border: 1px solid #333; color: #666; font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
         .tm-btn:hover { color: #fff; border-color: #fff; }
 
-        canvas { position: absolute; top: 0; left: 0; }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -145,8 +147,12 @@
     </div>
 
     <script>
+        // --- PLANE STATE ---
         let currentUniverse = { years: [] };
+        let panX = 0, panY = 0, gridZoom = 1;
+        let isPanningGrid = false, startX, startY;
 
+        // --- CLOCK & NAVIGATION ---
         function updateClock() {
             const now = new Date();
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
@@ -161,6 +167,49 @@
         const active = universes.find(u => u.id == params.get('id'));
         if(active) document.getElementById('active-universe-name').innerText = active.name.toUpperCase();
 
+        // --- GRID LOGIC ---
+        const plane = document.getElementById('plane-container');
+
+        plane.addEventListener('mousedown', (e) => {
+            // Safety: Don't drag grid if clicking buttons, timeline, or header
+            if (e.target.closest('#timeline-hud') || e.target.closest('.workspace-header')) return;
+            
+            isPanningGrid = true;
+            plane.style.cursor = 'grabbing';
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanningGrid) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateGridTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanningGrid = false;
+            plane.style.cursor = 'crosshair';
+        });
+
+        plane.addEventListener('wheel', (e) => {
+            if (e.target.closest('#timeline-hud')) return; // Reserve wheel for timeline zoom
+            e.preventDefault();
+            const zoomSpeed = 0.05;
+            if (e.deltaY < 0) gridZoom *= 1.1;
+            else gridZoom *= 0.9;
+            gridZoom = Math.max(0.2, Math.min(gridZoom, 5)); // Bound zoom range
+            updateGridTransform();
+        }, { passive: false });
+
+        function updateGridTransform() {
+            const baseSize = 20 * gridZoom;
+            const majorSize = 100 * gridZoom;
+            plane.style.backgroundSize = `${baseSize}px ${baseSize}px, ${baseSize}px ${baseSize}px, ${majorSize}px ${majorSize}px, ${majorSize}px ${majorSize}px`;
+            plane.style.backgroundPosition = `${panX}px ${panY}px`;
+        }
+
+        // --- YEAR MODAL & TIMELINE ---
         function openYearModal() { document.getElementById('year-modal').style.display = 'flex'; document.getElementById('year-input').focus(); }
         function closeYearModal() { document.getElementById('year-modal').style.display = 'none'; document.getElementById('year-input').value = ''; }
 
@@ -206,7 +255,9 @@
         }
 
         function resetZoom() {
-            console.log("Zoom Reset Active");
+            gridZoom = 1; panX = 0; panY = 0;
+            updateGridTransform();
+            console.log("Plane Reset to Origin");
         }
     </script>
 </body>
