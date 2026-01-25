@@ -6,6 +6,7 @@
     <title>AlphaLine | Workspace</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
+        
         :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; --accent: #fff; }
         
         html, body { 
@@ -15,6 +16,7 @@
             user-select: none; -webkit-user-select: none;
         }
 
+        /* --- Header --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -22,9 +24,16 @@
         }
 
         .brand-block { display: flex; align-items: center; gap: 20px; }
-        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); }
-        .nav-text strong { color: #fff; font-weight: 800; }
+        .exit-btn { cursor: pointer; color: var(--text-dim); transition: 0.3s; font-size: 1.2rem; padding-right: 5px; }
+        .exit-btn:hover { color: #fff; }
+        
+        .nav-text { 
+            font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; 
+            color: var(--text-dim); display: flex; align-items: center; 
+        }
+        .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
         .title-sep { margin: 0 15px; color: #333; }
+        .universe-name { color: #fff; }
 
         .status-block { 
             position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); 
@@ -32,35 +41,52 @@
         }
         .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); text-align: right; }
 
+        /* --- Timeline HUD --- */
         #timeline-hud {
-            position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500;
+            position: absolute;
+            left: 50%;
+            bottom: 60px;
+            transform: translateX(-50%); /* CSS centering */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 1500;
         }
 
         #timeline-bar {
-            width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); 
-            border: 2px solid var(--accent); border-radius: 4px; cursor: grab;
+            width: 600px; height: 40px;
+            background: rgba(8, 8, 8, 0.95); 
+            border: 2px solid var(--accent);
+            border-radius: 4px; 
+            cursor: grab; 
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
         }
 
         .timeline-controls { display: flex; gap: 10px; pointer-events: auto; }
         .tm-btn {
             background: #111; border: 1px solid #333; color: #666;
-            font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer;
+            font-size: 0.55rem; padding: 5px 12px; letter-spacing: 1px;
+            text-transform: uppercase; cursor: pointer; transition: 0.2s;
         }
+        .tm-btn:hover { color: #fff; border-color: #fff; }
 
-        #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; }
+        #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; position: relative; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
 
     <header id="main-header" class="workspace-header">
         <div class="brand-block">
+            <div class="exit-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">...</span>
+                <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name" class="universe-name">...</span>
             </div>
         </div>
         <div class="status-block">
-            <div id="save-indicator" style="font-size: 0.6rem; color: #444;">Project Saved</div>
+            <div id="save-indicator" style="font-size: 0.6rem; color: #444; letter-spacing: 1px;">PROJECT SAVED</div>
             <div id="workspace-clock" class="clock-block"></div>
         </div>
     </header>
@@ -76,16 +102,30 @@
         <canvas id="plane-canvas"></canvas>
     </div>
 
+    <script src="creation-plane.js"></script>
     <script>
+        // --- CLOCK & DATA ---
         function updateClock() {
             const now = new Date();
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
             document.getElementById('workspace-clock').innerHTML = 
                 `LOS ANGELES | ${now.toLocaleTimeString().toUpperCase()}<br>` +
-                `${pst.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toUpperCase()} PST | ${now.toLocaleDateString().toUpperCase()}`;
+                `${pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}).toUpperCase()} PST | ${now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
         setInterval(updateClock, 1000); updateClock();
 
+        const params = new URLSearchParams(window.location.search);
+        const activeUniverse = JSON.parse(localStorage.getItem('alphaline_universes') || "[]").find(u => u.id == params.get('id'));
+        if(activeUniverse) document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
+
+        function exitWorkspace() {
+            window.parent.postMessage('RESTORE_FRAME', '*');
+            const hub = window.top;
+            hub.document.getElementById('content-frame').src = 'universes.html';
+            hub.document.body.classList.remove('workspace-mode');
+        }
+
+        // --- THE CONFLICT-FREE DRAG LOGIC ---
         const hud = document.getElementById('timeline-hud');
         const handle = document.getElementById('timeline-bar');
         const header = document.getElementById('main-header');
@@ -96,22 +136,37 @@
         handle.addEventListener('mousedown', (e) => {
             isDragging = true;
             const rect = hud.getBoundingClientRect();
-            startX = e.clientX; startY = e.clientY;
-            initialLeft = rect.left; initialTop = rect.top;
+            
+            // 1. Capture exact start state
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            
             handle.style.cursor = 'grabbing';
-            hud.style.bottom = 'auto'; hud.style.left = initialLeft + 'px';
-            hud.style.top = initialTop + 'px'; hud.style.transform = 'none';
+            
+            // 2. Hand-off: Convert CSS centering to JS absolute pixels
+            hud.style.bottom = 'auto';
+            hud.style.left = initialLeft + 'px';
+            hud.style.top = initialTop + 'px';
+            hud.style.transform = 'none'; // Kill the CSS translateX(-50%)
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
+
+            // 3. Delta calculation prevents jumps
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            let newX = initialLeft + dx;
+            let newY = initialTop + dy;
+
+            // 4. Live edge detection
             const topBarEdge = header.getBoundingClientRect().bottom;
             const hudRect = hud.getBoundingClientRect();
             
-            let newX = initialLeft + (e.clientX - startX);
-            let newY = initialTop + (e.clientY - startY);
-
-            // SOUND CLAMPING
+            // 5. Sound Clamping
             newX = Math.max(0, Math.min(newX, window.innerWidth - hudRect.width));
             newY = Math.max(topBarEdge, Math.min(newY, window.innerHeight - hudRect.height));
 
@@ -119,12 +174,20 @@
             hud.style.top = newY + 'px';
         });
 
-        document.addEventListener('mouseup', () => { isDragging = false; handle.style.cursor = 'grab'; });
+        document.addEventListener('mouseup', () => { 
+            isDragging = false; 
+            handle.style.cursor = 'grab'; 
+        });
 
         function resetTimeline() {
-            hud.style.left = '50%'; hud.style.top = 'auto'; hud.style.bottom = '60px';
+            // Restore original CSS state
+            hud.style.left = '50%';
+            hud.style.top = 'auto';
+            hud.style.bottom = '60px';
             hud.style.transform = 'translateX(-50%)';
         }
+
+        const plane = new CreationPlane('plane-canvas');
     </script>
 </body>
 </html>
