@@ -34,9 +34,12 @@
         #timeline-hud {
             position: fixed; 
             left: 50%; 
-            top: 135px; /* Judged safe distance: Header(65) + Margin(35) + BoxHeight(35) */
+            top: 105px; 
             transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 30px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 10px; /* Buttons now hug the bar closer */
             z-index: 1500;
             width: auto;
         }
@@ -73,7 +76,7 @@
         .year-line:hover .blip-box { opacity: 1; }
 
         /* --- CONTROLS --- */
-        .timeline-controls { display: flex; gap: 12px; }
+        .timeline-controls { display: flex; gap: 8px; }
 
         /* --- MODAL --- */
         #year-modal {
@@ -186,7 +189,6 @@
         }
 
         function resetZoom() {
-            // Functionality to be defined in next steps
             console.log("Zoom Reset Active");
         }
     </script>
