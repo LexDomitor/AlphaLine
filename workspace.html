@@ -17,10 +17,11 @@
         html, body { 
             margin: 0; padding: 0; height: 100vh; width: 100vw; 
             background: var(--bg); color: #fff; 
-            font-family: 'Inter', sans-serif; overflow: hidden; 
+            font-family: 'Inter', sans-serif; overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* --- Header: Fixed 65px --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -39,10 +40,9 @@
         .title-sep { margin: 0 15px; color: #333; }
         .universe-name { color: #fff; }
 
-        /* --- Status Block: Fixed Right Anchor --- */
         .status-block { 
             position: absolute; 
-            right: 2rem; /* Matches left side padding */
+            right: 2rem; 
             top: 50%; 
             transform: translateY(-50%); 
             display: flex; 
@@ -58,7 +58,7 @@
             color: var(--text-dim); 
             line-height: 1.4; 
             white-space: nowrap; 
-            text-align: right; /* Forces growth toward the left */
+            text-align: right;
         }
 
         /* --- Timeline HUD --- */
@@ -135,7 +135,6 @@
 
     <script src="creation-plane.js"></script>
     <script>
-        // --- DATA & DYNAMIC UI ---
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
@@ -165,7 +164,6 @@
             hub.document.body.classList.remove('workspace-mode');
         }
 
-        // --- HUD DRAG LOGIC ---
         const wrapper = document.getElementById('timeline-wrapper');
         const handle = document.getElementById('timeline-object');
         let isDragging = false;
@@ -173,7 +171,6 @@
 
         handle.addEventListener('mousedown', (e) => {
             isDragging = true;
-            // Capture offset from top-left of the wrapper
             startPos = { x: e.clientX - wrapper.offsetLeft, y: e.clientY - wrapper.offsetTop };
             handle.style.cursor = 'grabbing';
         });
@@ -184,20 +181,23 @@
             let x = e.clientX - startPos.x;
             let y = e.clientY - startPos.y;
 
-            // Boundaries
+            // --- FIXED BOUNDARY MATH ---
             const minX = 0;
             const maxX = window.innerWidth - wrapper.offsetWidth;
-            const minY = 65; // SNUG AGAINST TOP BAR
+            
+            // Allow the top of the box to hit the 65px header exactly
+            const minY = 65; 
+            
+            // Allow the bottom of the buttons to hit the floor
             const maxY = window.innerHeight - wrapper.offsetHeight;
 
-            // Clamp
             x = Math.max(minX, Math.min(x, maxX));
             y = Math.max(minY, Math.min(y, maxY));
 
             wrapper.style.left = x + 'px';
             wrapper.style.top = y + 'px';
             wrapper.style.bottom = 'auto';
-            wrapper.style.transform = 'none'; // Clear initial CSS centering
+            wrapper.style.transform = 'none';
         });
 
         document.addEventListener('mouseup', () => { 
@@ -212,7 +212,6 @@
             wrapper.style.transform = 'translateX(-50%)';
         }
 
-        // Initialize Plane
         const plane = new CreationPlane('plane-canvas');
     </script>
 </body>
