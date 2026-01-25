@@ -15,7 +15,7 @@
             user-select: none;
         }
 
-        /* --- TOP BAR --- */
+        /* --- HEADER --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -24,11 +24,9 @@
         .brand-block { display: flex; align-items: center; gap: 15px; }
         .back-btn { cursor: pointer; color: var(--text-dim); font-size: 1.2rem; transition: 0.2s; width: 30px; text-align: center; display:flex; align-items:center; justify-content:center; }
         .back-btn:hover { color: #fff; }
-        
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display:flex; gap:10px; }
         .nav-text strong { color: #fff; font-weight: 800; }
         .title-sep { color: #333; }
-
         .status-block { margin-left: auto; display: flex; align-items: center; gap: 30px; text-align: right; }
         .save-indicator { font-size: 0.6rem; color: #444; letter-spacing: 1px; font-weight: 600; }
         .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.3; }
@@ -49,104 +47,80 @@
         #plane-container { 
             width: 100vw; height: calc(100vh - 65px); margin-top: 65px;
             background-color: #000;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 20px 20px; position: relative; overflow: hidden; cursor: crosshair;
         }
-
         #node-group {
             position: absolute; left: 50%; top: 50%; display: none; flex-direction: column; align-items: center; transform-origin: center; z-index: 100;
         }
         .grid-node {
-            padding: 20px 40px; background: rgba(15, 15, 15, 0.75); 
-            backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); 
-            display: flex; flex-direction: column; align-items: center;
+            padding: 20px 40px; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center;
         }
         .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 2.5rem; margin: 0; letter-spacing: 6px; font-weight: 300; }
         .node-label { font-size: 0.5rem; color: #888; letter-spacing: 4px; font-weight: 800; margin-bottom: 5px; }
-
         .sub-node {
-            padding: 15px 30px; background: rgba(10, 10, 10, 0.6); 
-            backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 50px; text-align: center; max-width: 200px;
+            padding: 15px 30px; background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; text-align: center; max-width: 200px;
         }
 
         /* --- PIPES & ADD BUTTONS --- */
         .node-pipe { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
-        
         .pipe-add {
             position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #000; border: 1px solid #555;
-            color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; transform: scale(0.8);
+            color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; transform: scale(0.8);
         }
         .node-pipe:hover .pipe-add { opacity: 1; transform: scale(1); }
         .pipe-add:hover { background: #fff; color: #000; border-color: #fff; }
-
-        /* The Main Bottom Add Circle */
         .add-circle {
-            width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
             color: #666; font-size: 1.2rem; transition: 0.3s; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
         }
         .add-circle:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); transform: scale(1.1); }
 
-        /* --- PLOT NODES --- */
+        /* --- PLOT & EVENT NODES (UPDATED) --- */
+        .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; }
         .plot-node {
-            width: 550px; background: rgba(12, 12, 12, 0.85); border: 1px solid #333;
-            border-radius: 15px; padding: 25px; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 550px; background: rgba(12, 12, 12, 0.85); border: 1px solid #333; border-radius: 15px; padding: 25px; box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); cursor: grab;
         }
+        .plot-node:active { cursor: grabbing; }
         .plot-title-field {
-            background: transparent; border: none; border-bottom: 1px solid #222;
-            color: #fff; font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase;
-            padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; 
-            text-align: center; 
+            background: transparent; border: none; border-bottom: 1px solid #222; color: #fff; font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase;
+            padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; text-align: center;
         }
         
         .event-node {
-            display: flex; background: rgba(0,0,0,0.5); border: 1px solid #222;
-            border-radius: 20px; overflow: hidden; align-items: stretch; min-height: 80px;
+            display: flex; flex-direction: column; background: rgba(0,0,0,0.5); border: 1px solid #222; border-radius: 20px; overflow: hidden; cursor: grab;
         }
-        .event-left { flex: 1; padding: 15px 20px; display: flex; align-items: flex-start; }
+        .event-node:active { cursor: grabbing; }
+        .event-text-container { padding: 15px 25px; }
         .event-input {
-            background: transparent; border: none; color: #ddd; resize: none;
-            width: 100%; font-size: 0.8rem; line-height: 1.6; outline: none;
-            font-family: 'Inter', sans-serif; overflow: hidden; height: auto;
+            background: transparent; border: none; color: #ddd; resize: none; width: 100%; font-size: 0.8rem; line-height: 1.6; outline: none;
+            font-family: 'Inter', sans-serif; overflow: hidden; height: auto; display: block;
         }
-        .event-right {
-            width: 140px; background: #111; border-left: 1px solid #222;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
+        .event-image-container {
+            background: #111; border-top: 1px solid #222; cursor: pointer; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 40px;
         }
-        .event-right img { width: 100%; height: 100%; object-fit: cover; }
-        .img-placeholder { font-size: 0.5rem; color: #444; letter-spacing: 1px; text-transform: uppercase; }
+        .event-image-container img { width: 100%; height: auto; display: block; object-fit: contain; max-height: 500px; }
+        .img-placeholder { padding: 15px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Drag and Drop Visuals */
+        .draggable.dragging { opacity: 0.5; border: 2px dashed #fff; }
+        .draggable.drag-over { border: 2px solid var(--accent); }
 
         /* --- TIMELINE HUD --- */
-        #timeline-hud {
-            position: fixed; left: 50%; top: 105px; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500;
-        }
-        #timeline-bar {
-            width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); 
-            border: 2px solid var(--accent); border-radius: 4px; position: relative;
-        }
+        #timeline-hud { position: fixed; left: 50%; top: 105px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500; }
+        #timeline-bar { width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); border: 2px solid var(--accent); border-radius: 4px; position: relative; }
         .timeline-axis { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.2); transform: translateY(-50%); }
         .timeline-controls { display: flex; justify-content: center; gap: 12px; width: 100%; }
-        
         .year-dot, .year-line { cursor: pointer; position: absolute; top: 50%; transform: translate(-50%, -50%); transition: 0.2s; }
         .year-dot { width: 30px; height: 30px; background: #fff; border-radius: 50%; z-index: 20; }
         .year-line { width: 2px; height: 20px; background: rgba(255,255,255,0.4); z-index: 10; }
         .selected-marker { box-shadow: 0 0 20px 5px rgba(255,255,255,0.4); background: #fff !important; height: 35px !important; }
-
-        .year-box {
-            position: absolute; background: #000; border: 1px solid #444; padding: 4px 10px;
-            font-family: 'JetBrains Mono'; font-size: 0.65rem; color: #fff; pointer-events: none;
-        }
+        .year-box { position: absolute; background: #000; border: 1px solid #444; padding: 4px 10px; font-family: 'JetBrains Mono'; font-size: 0.65rem; color: #fff; pointer-events: none; }
         .box-min { right: 100%; margin-right: 20px; top: 50%; transform: translateY(-50%); }
         .box-max { left: 100%; margin-left: 20px; top: 50%; transform: translateY(-50%); }
         .box-above { bottom: 100%; margin-bottom: 15px; left: 50%; transform: translateX(-50%); opacity: 0; transition: 0.2s; }
         .year-line:hover .box-above, .selected-marker .box-above { opacity: 1; }
-
         .tm-btn { background: #111; border: 1px solid #333; color: #666; font-size: 0.55rem; padding: 8px 16px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
         .tm-btn:hover { color: #fff; border-color: #fff; }
     </style>
@@ -156,9 +130,7 @@
     <header class="workspace-header">
         <div class="brand-block">
             <div class="back-btn" onclick="exitWorkspace()">←</div>
-            <div class="nav-text">
-                <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">UNNAMED</span>
-            </div>
+            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">UNNAMED</span></div>
         </div>
         <div class="status-block">
             <div class="save-indicator">PROJECT SAVED</div>
@@ -183,20 +155,15 @@
                 <div class="node-label">YEAR</div>
                 <h2 id="grid-year-display">0000</h2>
             </div>
-            
             <div class="node-pipe"></div>
-            
             <div class="sub-node">
                 <div class="node-label">CHARACTERS</div>
                 <div style="font-size: 0.5rem; color: #444; font-style: italic;">Drag Profiles here to link.</div>
             </div>
-
             <div class="node-pipe">
                 <div class="pipe-add" onclick="addNewPlotNode(0)">+</div>
             </div>
-
             <div id="plot-stack"></div>
-
             <div class="node-pipe"></div>
             <div class="add-circle" onclick="appendPlotNode()">+</div>
         </div>
@@ -217,6 +184,9 @@
         let selectedYear = null;
         let isDistributed = false;
         let panX = 0, panY = 0, gridZoom = 1;
+        let dragSrcEl = null;
+        let dragType = null;
+        let dragPlotIndex = null;
 
         function updateClock() {
             const now = new Date();
@@ -236,7 +206,7 @@
         const nodeGroup = document.getElementById('node-group');
 
         plane.onmousedown = (e) => {
-            if (e.target.closest('.plot-node') || e.target.closest('#timeline-hud') || e.target.closest('.workspace-header') || e.target.closest('#year-modal')) return;
+            if (e.target.closest('.plot-node') || e.target.closest('.event-node') || e.target.closest('#timeline-hud') || e.target.closest('.workspace-header') || e.target.closest('#year-modal')) return;
             let sx = e.clientX - panX, sy = e.clientY - panY;
             plane.onmousemove = (me) => {
                 panX = me.clientX - sx; panY = me.clientY - sy;
@@ -258,9 +228,6 @@
             nodeGroup.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${gridZoom})`;
         }
 
-        // --- PLOT ENGINE ---
-        
-        // Insert at specific index (via Pipe hover)
         function addNewPlotNode(index) {
             if (!selectedYear) return;
             if (!plotsByYear[selectedYear]) plotsByYear[selectedYear] = [];
@@ -268,7 +235,6 @@
             renderPlotStack();
         }
 
-        // Append to end (via Bottom Circle)
         function appendPlotNode() {
             if (!selectedYear) return;
             if (!plotsByYear[selectedYear]) plotsByYear[selectedYear] = [];
@@ -287,6 +253,12 @@
             const plots = plotsByYear[selectedYear] || [];
 
             plots.forEach((plot, pIdx) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'plot-node-wrapper draggable';
+                wrapper.setAttribute('draggable', 'true');
+                wrapper.dataset.index = pIdx;
+                addDnDHandlers(wrapper);
+
                 const node = document.createElement('div');
                 node.className = 'plot-node';
                 node.innerHTML = `
@@ -298,12 +270,16 @@
                 const evCont = node.querySelector(`#ev-container-${pIdx}`);
                 plot.events.forEach((ev, eIdx) => {
                     const row = document.createElement('div');
-                    row.className = 'event-node';
+                    row.className = 'event-node draggable';
+                    row.setAttribute('draggable', 'true');
+                    row.dataset.pIdx = pIdx;
+                    row.dataset.eIdx = eIdx;
+                    addDnDHandlers(row);
                     row.innerHTML = `
-                        <div class="event-left">
+                        <div class="event-text-container">
                             <textarea class="event-input" placeholder="Describe the event..." oninput="handleText(this, ${pIdx}, ${eIdx})">${ev.text}</textarea>
                         </div>
-                        <div class="event-right" onclick="triggerImageUpload(${pIdx}, ${eIdx})">
+                        <div class="event-image-container" onclick="triggerImageUpload(${pIdx}, ${eIdx})">
                             ${ev.img ? `<img src="${ev.img}">` : '<span class="img-placeholder">IMAGE</span>'}
                         </div>
                     `;
@@ -311,14 +287,83 @@
                     setTimeout(() => autoSize(row.querySelector('textarea')), 0);
                 });
 
-                stack.appendChild(node);
-
-                // Pipe allowing insertion AFTER this node
+                wrapper.appendChild(node);
                 const pipe = document.createElement('div');
                 pipe.className = 'node-pipe';
                 pipe.innerHTML = `<div class="pipe-add" onclick="addNewPlotNode(${pIdx + 1})">+</div>`;
-                stack.appendChild(pipe);
+                wrapper.appendChild(pipe);
+                stack.appendChild(wrapper);
             });
+        }
+
+        function addDnDHandlers(el) {
+            el.addEventListener('dragstart', handleDragStart);
+            el.addEventListener('dragover', handleDragOver);
+            el.addEventListener('dragenter', handleDragEnter);
+            el.addEventListener('dragleave', handleDragLeave);
+            el.addEventListener('drop', handleDrop);
+            el.addEventListener('dragend', handleDragEnd);
+        }
+
+        function handleDragStart(e) {
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            if (this.classList.contains('plot-node-wrapper')) {
+                dragType = 'plot';
+            } else if (this.classList.contains('event-node')) {
+                dragType = 'event';
+                dragPlotIndex = parseInt(this.dataset.pIdx);
+            }
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) { this.classList.add('drag-over'); }
+        function handleDragLeave(e) { this.classList.remove('drag-over'); }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            const target = this;
+            if (dragSrcEl !== target) {
+                if (dragType === 'plot' && target.classList.contains('plot-node-wrapper')) {
+                    reorderPlots(dragSrcEl, target);
+                } else if (dragType === 'event' && target.classList.contains('event-node')) {
+                    const targetPlotIndex = parseInt(target.dataset.pIdx);
+                    if (dragPlotIndex === targetPlotIndex) {
+                        reorderEvents(dragSrcEl, target, dragPlotIndex);
+                    }
+                }
+            }
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.draggable').forEach(el => el.classList.remove('drag-over'));
+            dragSrcEl = null; dragType = null; dragPlotIndex = null;
+        }
+
+        function reorderPlots(src, target) {
+            const srcIdx = parseInt(src.dataset.index);
+            const targetIdx = parseInt(target.dataset.index);
+            const plots = plotsByYear[selectedYear];
+            const [movedPlot] = plots.splice(srcIdx, 1);
+            plots.splice(targetIdx, 0, movedPlot);
+            renderPlotStack();
+        }
+
+        function reorderEvents(src, target, pIdx) {
+            const srcIdx = parseInt(src.dataset.eIdx);
+            const targetIdx = parseInt(target.dataset.eIdx);
+            const events = plotsByYear[selectedYear][pIdx].events;
+            const [movedEvent] = events.splice(srcIdx, 1);
+            events.splice(targetIdx, 0, movedEvent);
+            renderPlotStack();
         }
 
         function handleText(el, pIdx, eIdx) {
