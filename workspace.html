@@ -10,7 +10,6 @@
         
         html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* --- Header Fix --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -19,12 +18,13 @@
         .brand-block { display: flex; align-items: center; gap: 20px; }
         .exit-btn { cursor: pointer; color: var(--text-dim); transition: 0.3s; font-size: 1.2rem; }
         .exit-btn:hover { color: #fff; }
+        
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; }
         .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
         .title-sep { margin: 0 15px; color: #333; }
         .universe-name { color: #fff; margin-left: 15px; }
 
-        /* FIXED: Status block anchored to right edge with same padding as left */
+        /* THE FIX: Absolute right anchor with right-aligned text */
         .status-block { 
             position: absolute; 
             right: 2rem; 
@@ -36,9 +36,15 @@
             text-align: right; 
         }
         #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; }
-        .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.4; white-space: nowrap; }
+        .clock-block { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.65rem; 
+            color: var(--text-dim); 
+            line-height: 1.4; 
+            white-space: nowrap; 
+            text-align: right; 
+        }
 
-        /* --- Timeline & HUD --- */
         #timeline-wrapper {
             position: absolute;
             left: 50%;
@@ -49,7 +55,7 @@
             align-items: center;
             gap: 15px;
             z-index: 1500;
-            pointer-events: none; /* Allows canvas interaction through empty space */
+            pointer-events: none;
         }
 
         #timeline-object {
@@ -63,22 +69,11 @@
             pointer-events: auto;
         }
 
-        .timeline-controls {
-            display: flex;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
+        .timeline-controls { display: flex; gap: 10px; pointer-events: auto; }
         .tm-btn {
-            background: #111;
-            border: 1px solid #333;
-            color: #666;
-            font-size: 0.55rem;
-            padding: 5px 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
+            background: #111; border: 1px solid #333; color: #666;
+            font-size: 0.55rem; padding: 5px 12px; letter-spacing: 1px;
+            text-transform: uppercase; cursor: pointer; transition: 0.2s;
         }
         .tm-btn:hover { color: #fff; border-color: #fff; }
 
@@ -92,7 +87,11 @@
         <div class="brand-block">
             <div class="exit-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name" class="universe-name">...</span>
+                <strong>ALPHALINE</strong> 
+                <span class="title-sep">|</span> 
+                CREATION PLANE 
+                <span class="title-sep">|</span> 
+                <span id="active-universe-name" class="universe-name">...</span>
             </div>
         </div>
         <div class="status-block">
@@ -114,7 +113,6 @@
 
     <script src="creation-plane.js"></script>
     <script>
-        // --- DATA & CLOCK ---
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
@@ -139,7 +137,6 @@
             hub.document.body.classList.remove('workspace-mode');
         }
 
-        // --- CONSTRAINED DRAG LOGIC ---
         const wrapper = document.getElementById('timeline-wrapper');
         const handle = document.getElementById('timeline-object');
         let isDragging = false;
@@ -153,36 +150,21 @@
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-
             let x = e.clientX - startPos.x;
             let y = e.clientY - startPos.y;
-
-            // Boundaries: Viewport Width - Wrapper Width
             const minX = wrapper.offsetWidth / 2;
             const maxX = window.innerWidth - (wrapper.offsetWidth / 2);
-            const minY = 65 + 10; // Header height + 10px buffer
-            const maxY = window.innerHeight - wrapper.offsetHeight - 10;
-
-            // Apply Constraints
+            const minY = 65; // HEADER HEIGHT
+            const maxY = window.innerHeight - wrapper.offsetHeight;
             x = Math.max(minX, Math.min(x, maxX));
             y = Math.max(minY, Math.min(y, maxY));
-
             wrapper.style.left = x + 'px';
             wrapper.style.top = y + 'px';
             wrapper.style.bottom = 'auto';
             wrapper.style.transform = 'translateX(-50%)';
         });
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            handle.style.cursor = 'grab';
-        });
-
-        // Window Resize safety: snap back if outside
-        window.addEventListener('resize', () => {
-            const rect = wrapper.getBoundingClientRect();
-            if (rect.bottom > window.innerHeight) resetTimeline();
-        });
+        document.addEventListener('mouseup', () => { isDragging = false; handle.style.cursor = 'grab'; });
 
         function resetTimeline() {
             wrapper.style.left = '50%';
