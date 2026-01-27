@@ -96,19 +96,51 @@
             padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; text-align: center;
         }
         
+        /* UPDATED EVENT NODE STYLES */
         .event-node {
-            display: flex; flex-direction: column; background: rgba(0,0,0,0.3); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.2s;
+            display: flex; flex-direction: row; /* Horizontal layout */
+            background: rgba(0,0,0,0.3); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.2s;
+            min-height: 100px; position: relative;
         }
-        .event-text-container { padding: 15px 20px; }
+        .event-node.flipped {
+            flex-direction: row-reverse; /* Flip layout */
+        }
+        
+        .event-text-container { 
+            flex-grow: 1; padding: 15px 20px; position: relative; 
+            display: flex; flex-direction: column;
+        }
+        
         .event-input {
             background: transparent; border: none; color: #ddd; resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
-            font-family: 'Inter', sans-serif; height: auto; display: block;
+            font-family: 'Inter', sans-serif; height: 100%; display: block;
         }
+
         .event-image-container {
-            background: #111; border-top: 1px solid #222; cursor: pointer; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 40px;
+            width: 140px; flex-shrink: 0;
+            background: #111; border-left: 1px solid #222; 
+            cursor: pointer; overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
-        .event-image-container img { width: 100%; height: auto; object-fit: contain; }
-        .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; }
+        .event-node.flipped .event-image-container {
+            border-left: none; border-right: 1px solid #222; /* Flip border */
+        }
+
+        .event-image-container img { width: 100%; height: 100%; object-fit: cover; }
+        .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; }
+
+        /* Event Tools (Flip / Delete) */
+        .event-tools {
+            position: absolute; top: 8px; right: 8px; 
+            display: flex; gap: 6px; opacity: 0; transition: 0.2s;
+            background: rgba(0,0,0,0.8); padding: 2px 4px; border-radius: 4px;
+        }
+        .event-node:hover .event-tools { opacity: 1; }
+        .tool-btn {
+            cursor: pointer; font-size: 10px; color: #666; width: 16px; height: 16px; 
+            display: flex; align-items: center; justify-content: center; border-radius: 3px;
+        }
+        .tool-btn:hover { color: #fff; background: #333; }
+        .tool-delete:hover { color: var(--danger); background: rgba(255, 68, 68, 0.1); }
 
         /* Drag & Drop Styles */
         .draggable { cursor: grab; }
@@ -217,7 +249,6 @@
         const active = universes.find(u => u.id == params.get('id'));
         if(active) {
             document.getElementById('active-universe-name').innerText = active.name.toUpperCase();
-            // In a real app, you'd load plot data here
         }
 
         // --- CAMERA CONTROLS ---
@@ -264,7 +295,8 @@
         }
 
         function addEventToNode(pIdx) {
-            plotsByYear[selectedYear][pIdx].events.push({ text: '', img: null });
+            // New events default to 'flipped: false' (Text Left / Image Right)
+            plotsByYear[selectedYear][pIdx].events.push({ text: '', img: null, flipped: false });
             renderPlotStack();
         }
 
@@ -292,12 +324,18 @@
                 const evCont = node.querySelector(`#ev-container-${pIdx}`);
                 plot.events.forEach((ev, eIdx) => {
                     const evNode = document.createElement('div');
-                    evNode.className = 'event-node draggable';
+                    const isFlipped = ev.flipped ? 'flipped' : '';
+                    evNode.className = `event-node draggable ${isFlipped}`;
                     evNode.setAttribute('draggable', 'true');
                     evNode.dataset.pIdx = pIdx;
                     evNode.dataset.eIdx = eIdx;
+                    
                     evNode.innerHTML = `
                         <div class="event-text-container">
+                            <div class="event-tools">
+                                <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx})">↔</div>
+                                <div class="tool-btn tool-delete" title="Delete" onclick="deleteEvent(${pIdx}, ${eIdx})">×</div>
+                            </div>
                             <textarea class="event-input" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx})">${ev.text}</textarea>
                         </div>
                         <div class="event-image-container" onclick="triggerImg(${pIdx}, ${eIdx})">
@@ -322,9 +360,24 @@
             });
         }
 
+        // --- EVENTS ACTIONS ---
+        function toggleEventSide(pIdx, eIdx) {
+            const eventData = plotsByYear[selectedYear][pIdx].events[eIdx];
+            eventData.flipped = !eventData.flipped;
+            renderPlotStack();
+        }
+
+        function deleteEvent(pIdx, eIdx) {
+            if(confirm("Permanently delete this event?")) {
+                plotsByYear[selectedYear][pIdx].events.splice(eIdx, 1);
+                renderPlotStack();
+            }
+        }
+
         // --- DRAG AND DROP HANDLERS ---
         function setupDnD(el, type) {
             el.addEventListener('dragstart', (e) => {
+                if(e.target.closest('.tool-btn')) return; // Don't drag if clicking a button
                 dragSrcEl = el;
                 dragType = type;
                 el.classList.add('dragging');
