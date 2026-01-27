@@ -62,7 +62,7 @@
             position: absolute; left: 50%; top: 50%; display: none; flex-direction: column; align-items: center; transform-origin: center; z-index: 100;
         }
 
-        /* --- NODES --- */
+        /* --- CORE NODES --- */
         .grid-node {
             padding: 20px 40px; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center;
         }
@@ -73,20 +73,55 @@
             padding: 15px 30px; background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; text-align: center; min-width: 150px;
         }
 
+        /* Synopsis Node */
+        .synopsis-node {
+            width: 400px; background: rgba(20, 20, 20, 0.9); border: 1px solid #333; border-radius: 8px; padding: 15px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .synopsis-input {
+            width: 100%; background: transparent; border: none; color: #ddd; font-family: 'Inter', sans-serif; 
+            font-size: 0.8rem; line-height: 1.5; resize: none; outline: none; text-align: center; overflow: hidden;
+        }
+
+        /* Pipes & Connectors */
         .node-pipe { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; display: flex; justify-content: center; align-items: center; }
+        
         .pipe-add {
             position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #000; border: 1px solid #555;
             color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; transform: scale(0.8);
         }
         .node-pipe:hover .pipe-add { opacity: 1; transform: scale(1); }
-        .add-circle {
-            width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
-            color: #666; font-size: 1.2rem; transition: 0.3s; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+        .branch-hub:hover .pipe-add { opacity: 1; transform: scale(1); }
+
+        /* BRANCH HUB (The splitting mechanism) */
+        .branch-hub {
+            display: flex; align-items: center; justify-content: center; position: relative; height: 40px; width: 100%;
         }
-        .add-circle:hover { border-color: #fff; color: #fff; transform: scale(1.1); }
+        .hub-center-line { width: 1px; height: 100%; background: rgba(255,255,255,0.2); position: relative; display:flex; justify-content:center; align-items:center; }
+        
+        .hub-arm { width: 0px; height: 1px; background: rgba(255,255,255,0.2); transition: 0.3s; position: relative; }
+        .hub-trigger { 
+            width: 20px; height: 20px; border-radius: 50%; background: #000; border: 1px solid #555; color: #fff; 
+            display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; 
+            position: absolute; top: 50%; transform: translateY(-50%); opacity: 0; transition:0.2s;
+        }
+        .branch-hub.active .hub-arm { width: 300px; } /* Width of side spacing */
+        .branch-hub.active .hub-trigger { opacity: 1; }
+        
+        .trigger-left { left: 0; transform: translate(-50%, -50%); }
+        .trigger-right { right: 0; transform: translate(50%, -50%); }
+
+
+        /* --- PLOT COLUMNS --- */
+        #plot-grid-container {
+            display: flex; align-items: flex-start; gap: 40px;
+        }
+        .plot-column { display: flex; flex-direction: column; align-items: center; min-width: 550px; }
+        .side-column { opacity: 0.8; transform: scale(0.95); transform-origin: top center; }
+
 
         /* --- PLOT & EVENT NODES --- */
-        .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 0px; }
         .plot-node {
             width: 550px; background: rgba(12, 12, 12, 0.85); border: 1px solid #333; border-radius: 15px; padding: 25px; box-sizing: border-box;
             display: flex; flex-direction: column; gap: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
@@ -96,42 +131,28 @@
             padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; text-align: center;
         }
         
-        /* UPDATED EVENT NODE STYLES */
         .event-node {
-            display: flex; flex-direction: row; /* Horizontal layout */
-            background: rgba(0,0,0,0.3); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.2s;
+            display: flex; flex-direction: row; background: rgba(0,0,0,0.3); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.2s;
             min-height: 100px; position: relative;
         }
-        .event-node.flipped {
-            flex-direction: row-reverse; /* Flip layout */
-        }
+        .event-node.flipped { flex-direction: row-reverse; }
         
-        .event-text-container { 
-            flex-grow: 1; padding: 15px 20px; position: relative; 
-            display: flex; flex-direction: column;
-        }
-        
+        .event-text-container { flex-grow: 1; padding: 15px 20px; position: relative; display: flex; flex-direction: column; }
         .event-input {
             background: transparent; border: none; color: #ddd; resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
             font-family: 'Inter', sans-serif; height: 100%; display: block;
         }
 
         .event-image-container {
-            width: 140px; flex-shrink: 0;
-            background: #111; border-left: 1px solid #222; 
+            width: 140px; flex-shrink: 0; background: #111; border-left: 1px solid #222; 
             cursor: pointer; overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
-        .event-node.flipped .event-image-container {
-            border-left: none; border-right: 1px solid #222; /* Flip border */
-        }
-
+        .event-node.flipped .event-image-container { border-left: none; border-right: 1px solid #222; }
         .event-image-container img { width: 100%; height: 100%; object-fit: cover; }
         .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; }
 
-        /* Event Tools (Flip / Delete) */
         .event-tools {
-            position: absolute; top: 8px; right: 8px; 
-            display: flex; gap: 6px; opacity: 0; transition: 0.2s;
+            position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: 0; transition: 0.2s;
             background: rgba(0,0,0,0.8); padding: 2px 4px; border-radius: 4px;
         }
         .event-node:hover .event-tools { opacity: 1; }
@@ -165,6 +186,12 @@
 
         .tm-btn { background: #0a0a0a; border: 1px solid #222; color: #666; font-size: 0.55rem; padding: 8px 16px; text-transform: uppercase; cursor: pointer; transition: 0.2s; letter-spacing: 1px; }
         .tm-btn:hover { color: #fff; border-color: #555; }
+        
+        .add-circle {
+            width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: #666; font-size: 1.2rem; transition: 0.3s; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); margin-top: 10px;
+        }
+        .add-circle:hover { border-color: #fff; color: #fff; transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -198,16 +225,37 @@
                 <h2 id="grid-year-display">0000</h2>
             </div>
             <div class="node-pipe"></div>
+            
             <div class="sub-node">
                 <div class="node-label">Associated Profiles</div>
                 <div style="font-size: 0.5rem; color: #444;">LINK CHARACTERS</div>
             </div>
-            <div class="node-pipe">
-                <div class="pipe-add" onclick="addNewPlotNode(0)">+</div>
-            </div>
-            <div id="plot-stack"></div>
             <div class="node-pipe"></div>
-            <div class="add-circle" onclick="appendPlotNode()">+</div>
+
+            <div class="synopsis-node">
+                <div class="node-label" style="margin-bottom:8px;">Synopsis</div>
+                <textarea id="synopsis-text" class="synopsis-input" placeholder="Enter year synopsis..." oninput="handleSynopsis(this)"></textarea>
+            </div>
+
+            <div id="branch-hub" class="branch-hub">
+                <div class="hub-arm">
+                    <div class="hub-trigger trigger-left" onclick="addNewPlotNode(0, 'left')">+</div>
+                </div>
+                <div class="hub-center-line">
+                    <div class="pipe-add" onclick="addNewPlotNode(0, 'main')">+</div>
+                </div>
+                <div class="hub-arm">
+                    <div class="hub-trigger trigger-right" onclick="addNewPlotNode(0, 'right')">+</div>
+                </div>
+            </div>
+
+            <div id="plot-grid-container">
+                <div id="col-left" class="plot-column side-column"></div>
+                <div id="col-main" class="plot-column"></div>
+                <div id="col-right" class="plot-column side-column"></div>
+            </div>
+
+            <div class="add-circle" onclick="appendPlotNode('main')">+</div>
         </div>
         
         <div id="timeline-hud">
@@ -222,6 +270,7 @@
 
     <script>
         let currentUniverse = { years: [] };
+        // New Data Structure: plotsByYear[year] = { synopsis: "", main: [], left: [], right: [] }
         let plotsByYear = {}; 
         let selectedYear = null;
         let isDistributed = false;
@@ -256,7 +305,7 @@
         const nodeGroup = document.getElementById('node-group');
 
         plane.onmousedown = (e) => {
-            if (e.target.closest('.plot-node') || e.target.closest('.event-node') || e.target.closest('#timeline-hud') || e.target.closest('.workspace-header')) return;
+            if (e.target.closest('.plot-node') || e.target.closest('.event-node') || e.target.closest('.synopsis-node') || e.target.closest('#timeline-hud') || e.target.closest('.workspace-header')) return;
             let sx = e.clientX - panX, sy = e.clientY - panY;
             plane.onmousemove = (me) => {
                 panX = me.clientX - sx; panY = me.clientY - sy;
@@ -279,49 +328,86 @@
             nodeGroup.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${gridZoom})`;
         }
 
+        // --- SYNOPSIS LOGIC ---
+        function handleSynopsis(el) {
+            autoSize(el);
+            if(selectedYear && plotsByYear[selectedYear]) {
+                plotsByYear[selectedYear].synopsis = el.value;
+            }
+        }
+
         // --- PLOT LOGIC ---
-        function addNewPlotNode(index) {
+        function ensureYearData(y) {
+            if (!plotsByYear[y]) {
+                plotsByYear[y] = { synopsis: "", main: [], left: [], right: [] };
+            } else if (Array.isArray(plotsByYear[y])) {
+                // Migration if old format existed in memory
+                plotsByYear[y] = { synopsis: "", main: plotsByYear[y], left: [], right: [] };
+            }
+        }
+
+        function addNewPlotNode(index, column = 'main') {
             if (!selectedYear) return;
-            if (!plotsByYear[selectedYear]) plotsByYear[selectedYear] = [];
-            plotsByYear[selectedYear].splice(index, 0, { title: 'NEW PLOT', events: [] });
+            ensureYearData(selectedYear);
+            plotsByYear[selectedYear][column].splice(index, 0, { title: 'NEW PLOT', events: [] });
             renderPlotStack();
         }
 
-        function appendPlotNode() {
+        function appendPlotNode(column = 'main') {
             if (!selectedYear) return;
-            if (!plotsByYear[selectedYear]) plotsByYear[selectedYear] = [];
-            plotsByYear[selectedYear].push({ title: 'NEW PLOT', events: [] });
+            ensureYearData(selectedYear);
+            plotsByYear[selectedYear][column].push({ title: 'NEW PLOT', events: [] });
             renderPlotStack();
         }
 
-        function addEventToNode(pIdx) {
-            // New events default to 'flipped: false' (Text Left / Image Right)
-            plotsByYear[selectedYear][pIdx].events.push({ text: '', img: null, flipped: false });
+        function addEventToNode(pIdx, column) {
+            plotsByYear[selectedYear][column][pIdx].events.push({ text: '', img: null, flipped: false });
             renderPlotStack();
         }
 
         function renderPlotStack() {
-            const stack = document.getElementById('plot-stack');
+            // Get data
+            const data = plotsByYear[selectedYear];
+            if(!data) return;
+
+            // Update Synopsis
+            const synBox = document.getElementById('synopsis-text');
+            synBox.value = data.synopsis || "";
+            autoSize(synBox);
+
+            // Update Branch Hub (Show side triggers only if main plot exists)
+            const hub = document.getElementById('branch-hub');
+            if(data.main.length > 0) hub.classList.add('active');
+            else hub.classList.remove('active');
+
+            // Render Columns
+            renderColumn('col-left', data.left, 'left');
+            renderColumn('col-main', data.main, 'main');
+            renderColumn('col-right', data.right, 'right');
+        }
+
+        function renderColumn(containerId, plots, colName) {
+            const stack = document.getElementById(containerId);
             stack.innerHTML = '';
-            const plots = plotsByYear[selectedYear] || [];
 
             plots.forEach((plot, pIdx) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'plot-node-wrapper draggable';
                 wrapper.setAttribute('draggable', 'true');
                 wrapper.dataset.index = pIdx;
+                wrapper.dataset.col = colName; // Important for Drag Drop
                 
                 // Plot Node Content
                 const node = document.createElement('div');
                 node.className = 'plot-node';
                 node.innerHTML = `
-                    <input class="plot-title-field" value="${plot.title}" oninput="plotsByYear[selectedYear][${pIdx}].title=this.value">
-                    <div id="ev-container-${pIdx}" style="display:flex; flex-direction:column; gap:12px;"></div>
-                    <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx})">+ Add Event</button>
+                    <input class="plot-title-field" value="${plot.title}" oninput="plotsByYear[selectedYear]['${colName}'][${pIdx}].title=this.value">
+                    <div id="ev-container-${colName}-${pIdx}" style="display:flex; flex-direction:column; gap:12px;"></div>
+                    <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx}, '${colName}')">+ Add Event</button>
                 `;
 
-                // Render Events inside Plot
-                const evCont = node.querySelector(`#ev-container-${pIdx}`);
+                // Render Events
+                const evCont = node.querySelector(`#ev-container-${colName}-${pIdx}`);
                 plot.events.forEach((ev, eIdx) => {
                     const evNode = document.createElement('div');
                     const isFlipped = ev.flipped ? 'flipped' : '';
@@ -329,16 +415,17 @@
                     evNode.setAttribute('draggable', 'true');
                     evNode.dataset.pIdx = pIdx;
                     evNode.dataset.eIdx = eIdx;
+                    evNode.dataset.col = colName; // Pass column
                     
                     evNode.innerHTML = `
                         <div class="event-text-container">
                             <div class="event-tools">
-                                <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx})">↔</div>
-                                <div class="tool-btn tool-delete" title="Delete" onclick="deleteEvent(${pIdx}, ${eIdx})">×</div>
+                                <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx}, '${colName}')">↔</div>
+                                <div class="tool-btn tool-delete" title="Delete" onclick="deleteEvent(${pIdx}, ${eIdx}, '${colName}')">×</div>
                             </div>
-                            <textarea class="event-input" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx})">${ev.text}</textarea>
+                            <textarea class="event-input" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
                         </div>
-                        <div class="event-image-container" onclick="triggerImg(${pIdx}, ${eIdx})">
+                        <div class="event-image-container" onclick="triggerImg(${pIdx}, ${eIdx}, '${colName}')">
                             ${ev.img ? `<img src="${ev.img}">` : '<span class="img-placeholder">ADD MEDIA</span>'}
                         </div>
                     `;
@@ -353,23 +440,23 @@
                 // Pipe below plot
                 const pipe = document.createElement('div');
                 pipe.className = 'node-pipe';
-                pipe.innerHTML = `<div class="pipe-add" onclick="addNewPlotNode(${pIdx + 1})">+</div>`;
+                pipe.innerHTML = `<div class="pipe-add" onclick="addNewPlotNode(${pIdx + 1}, '${colName}')">+</div>`;
                 wrapper.appendChild(pipe);
                 
                 stack.appendChild(wrapper);
             });
         }
 
-        // --- EVENTS ACTIONS ---
-        function toggleEventSide(pIdx, eIdx) {
-            const eventData = plotsByYear[selectedYear][pIdx].events[eIdx];
+        // --- ACTIONS ---
+        function toggleEventSide(pIdx, eIdx, col) {
+            const eventData = plotsByYear[selectedYear][col][pIdx].events[eIdx];
             eventData.flipped = !eventData.flipped;
             renderPlotStack();
         }
 
-        function deleteEvent(pIdx, eIdx) {
+        function deleteEvent(pIdx, eIdx, col) {
             if(confirm("Permanently delete this event?")) {
-                plotsByYear[selectedYear][pIdx].events.splice(eIdx, 1);
+                plotsByYear[selectedYear][col][pIdx].events.splice(eIdx, 1);
                 renderPlotStack();
             }
         }
@@ -377,7 +464,7 @@
         // --- DRAG AND DROP HANDLERS ---
         function setupDnD(el, type) {
             el.addEventListener('dragstart', (e) => {
-                if(e.target.closest('.tool-btn')) return; // Don't drag if clicking a button
+                if(e.target.closest('.tool-btn')) return; 
                 dragSrcEl = el;
                 dragType = type;
                 el.classList.add('dragging');
@@ -393,12 +480,21 @@
                 if (e.stopPropagation) e.stopPropagation();
                 if (dragSrcEl !== el && dragType === type) {
                     if (type === 'plot') {
-                        reorderPlots(parseInt(dragSrcEl.dataset.index), parseInt(el.dataset.index));
-                    } else {
-                        reorderEvents(
-                            parseInt(dragSrcEl.dataset.pIdx), parseInt(dragSrcEl.dataset.eIdx),
-                            parseInt(el.dataset.pIdx), parseInt(el.dataset.eIdx)
+                        // Plot Reordering (Allows Cross Column)
+                        movePlot(
+                            dragSrcEl.dataset.col, parseInt(dragSrcEl.dataset.index),
+                            el.dataset.col, parseInt(el.dataset.index)
                         );
+                    } else {
+                        // Event Reordering (Same Plot restriction removed for future flexibility, currently simple swap)
+                        // For simplicity in this step, restrict event DnD to same column/same plot or implement full move logic
+                        if (dragSrcEl.dataset.col === el.dataset.col && dragSrcEl.dataset.pIdx === el.dataset.pIdx) {
+                             reorderEvents(
+                                el.dataset.col,
+                                parseInt(dragSrcEl.dataset.pIdx), parseInt(dragSrcEl.dataset.eIdx),
+                                parseInt(el.dataset.pIdx), parseInt(el.dataset.eIdx)
+                            );
+                        }
                     }
                 }
                 return false;
@@ -408,25 +504,26 @@
             });
         }
 
-        function reorderPlots(from, to) {
-            const list = plotsByYear[selectedYear];
-            const [moved] = list.splice(from, 1);
-            list.splice(to, 0, moved);
+        function movePlot(fromCol, fromIdx, toCol, toIdx) {
+            const fromList = plotsByYear[selectedYear][fromCol];
+            const toList = plotsByYear[selectedYear][toCol];
+            
+            const [moved] = fromList.splice(fromIdx, 1);
+            toList.splice(toIdx, 0, moved);
             renderPlotStack();
         }
 
-        function reorderEvents(fP, fE, tP, tE) {
-            if (fP !== tP) return; // Only reorder within same plot for now
-            const list = plotsByYear[selectedYear][fP].events;
+        function reorderEvents(col, fP, fE, tP, tE) {
+            const list = plotsByYear[selectedYear][col][fP].events;
             const [moved] = list.splice(fE, 1);
             list.splice(tE, 0, moved);
             renderPlotStack();
         }
 
         // --- HELPERS ---
-        function handleEventText(el, pIdx, eIdx) {
+        function handleEventText(el, pIdx, eIdx, col) {
             autoSize(el);
-            plotsByYear[selectedYear][pIdx].events[eIdx].text = el.value;
+            plotsByYear[selectedYear][col][pIdx].events[eIdx].text = el.value;
         }
 
         function autoSize(el) {
@@ -434,13 +531,13 @@
             el.style.height = el.scrollHeight + 'px';
         }
 
-        function triggerImg(pIdx, eIdx) {
+        function triggerImg(pIdx, eIdx, col) {
             const input = document.createElement('input');
             input.type = 'file'; input.accept = 'image/*';
             input.onchange = e => {
                 const reader = new FileReader();
                 reader.onload = r => {
-                    plotsByYear[selectedYear][pIdx].events[eIdx].img = r.target.result;
+                    plotsByYear[selectedYear][col][pIdx].events[eIdx].img = r.target.result;
                     renderPlotStack();
                 };
                 reader.readAsDataURL(e.target.files[0]);
@@ -457,7 +554,7 @@
             if (!isNaN(y) && !currentUniverse.years.includes(y)) {
                 currentUniverse.years.push(y);
                 currentUniverse.years.sort((a,b)=>a-b);
-                if (!plotsByYear[y]) plotsByYear[y] = [];
+                ensureYearData(y);
                 selectYear(y);
             }
             closeYearModal();
@@ -465,6 +562,7 @@
 
         function selectYear(y) {
             selectedYear = y;
+            ensureYearData(y);
             document.getElementById('grid-year-display').innerText = y;
             document.getElementById('node-group').style.display = 'flex';
             document.getElementById('delete-btn').style.display = 'block';
