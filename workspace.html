@@ -346,7 +346,10 @@
 
         function handleSynopsis(el) {
             autoSize(el);
-            if(selectedYear) plotsByYear[selectedYear].synopsis = el.value;
+            if(selectedYear) {
+                plotsByYear[selectedYear].synopsis = el.value;
+                saveData();
+            }
         }
 
         function addNewPlotNode(index, column) {
@@ -354,6 +357,7 @@
             ensureYearData(selectedYear);
             plotsByYear[selectedYear][column].splice(index, 0, { title: 'NEW PLOT', events: [] });
             renderPlotStack();
+            saveData();
         }
 
         function appendPlotNode(column) {
@@ -361,11 +365,13 @@
             ensureYearData(selectedYear);
             plotsByYear[selectedYear][column].push({ title: 'NEW PLOT', events: [] });
             renderPlotStack();
+            saveData();
         }
 
         function addEventToNode(pIdx, column) {
             plotsByYear[selectedYear][column][pIdx].events.push({ text: '', img: null, flipped: false });
             renderPlotStack();
+            saveData();
         }
 
         function renderPlotStack() {
@@ -401,7 +407,7 @@
                 const node = document.createElement('div');
                 node.className = 'plot-node';
                 node.innerHTML = `
-                    <input class="plot-title-field" value="${plot.title}" oninput="plotsByYear[selectedYear]['${colName}'][${pIdx}].title=this.value">
+                    <input class="plot-title-field" value="${plot.title}" oninput="updatePlotTitle(${pIdx}, '${colName}', this.value)">
                     <div id="ev-container-${colName}-${pIdx}" style="display:flex; flex-direction:column; gap:12px;"></div>
                     <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx}, '${colName}')">+ Add Event</button>
                 `;
@@ -457,17 +463,24 @@
             }
         }
 
+        function updatePlotTitle(pIdx, col, value) {
+            plotsByYear[selectedYear][col][pIdx].title = value;
+            saveData();
+        }
+
         // --- ACTIONS ---
         function toggleEventSide(pIdx, eIdx, col) {
             const ev = plotsByYear[selectedYear][col][pIdx].events[eIdx];
             ev.flipped = !ev.flipped;
             renderPlotStack();
+            saveData();
         }
 
         function deleteEvent(pIdx, eIdx, col) {
             if(confirm("Delete this event?")) {
                 plotsByYear[selectedYear][col][pIdx].events.splice(eIdx, 1);
                 renderPlotStack();
+                saveData();
             }
         }
 
@@ -493,6 +506,7 @@
                 plotsByYear[selectedYear][lbContext.col][lbContext.pIdx].events[lbContext.eIdx].img = null;
                 document.getElementById('lightbox').style.display = 'none';
                 renderPlotStack();
+                saveData();
             }
         }
 
@@ -509,6 +523,7 @@
                 reader.onload = r => {
                     plotsByYear[selectedYear][col][pIdx].events[eIdx].img = r.target.result;
                     renderPlotStack();
+                    saveData();
                 };
                 reader.readAsDataURL(e.target.files[0]);
             };
@@ -550,6 +565,7 @@
                             // Explicitly splice exactly 1 item
                             list.splice(idx, 1);
                             renderPlotStack();
+                            saveData();
                         }
                     }
                 });
@@ -577,6 +593,7 @@
             const [moved] = plotsByYear[selectedYear][fromCol].splice(fromIdx, 1);
             plotsByYear[selectedYear][toCol].splice(toIdx, 0, moved);
             renderPlotStack();
+            saveData();
         }
 
         function reorderEvents(col, fP, fE, tP, tE) {
@@ -584,6 +601,7 @@
             const [moved] = list.splice(fE, 1);
             list.splice(tE, 0, moved);
             renderPlotStack();
+            saveData();
         }
 
         // --- HELPERS ---
@@ -592,6 +610,7 @@
             plotsByYear[selectedYear][col][pIdx].events[eIdx].text = el.value;
             // Update counter
             el.nextElementSibling.innerText = `${el.value.length}/500`;
+            saveData();
         }
 
         function autoSize(el) {
@@ -600,8 +619,15 @@
         }
 
         // --- TIMELINE NAV ---
-        function openYearModal() { document.getElementById('year-modal').style.display = 'flex'; }
-        function closeYearModal() { document.getElementById('year-modal').style.display = 'none'; }
+        function openYearModal() { 
+            document.getElementById('year-modal').style.display = 'flex';
+            document.getElementById('year-input').focus();
+        }
+        
+        function closeYearModal() { 
+            document.getElementById('year-modal').style.display = 'none';
+            document.getElementById('year-input').value = '';
+        }
         
         function confirmNewYear() {
             const y = parseInt(document.getElementById('year-input').value);
@@ -618,21 +644,111 @@
             selectedYear = y;
             ensureYearData(y);
             document.getElementById('grid-year-display').innerText = y;
-            // Additional render logic needed for HUD etc, keeping simple for this block
+            document.getElementById('node-group').style.display = 'flex';
+            renderTimeline();
             renderPlotStack();
+            saveData();
+        }
+
+        function renderTimeline() {
+            const bar = document.getElementById('timeline-bar');
+            bar.innerHTML = '<div class="timeline-axis"></div>';
+            
+            if (currentUniverse.years.length === 0) {
+                document.getElementById('delete-btn').style.display = 'none';
+                return;
+            }
+            
+            const min = Math.min(...currentUniverse.years);
+            const max = Math.max(...currentUniverse.years);
+            const range = max - min || 1;
+            
+            // Min/Max labels
+            bar.innerHTML += `<div class="year-box box-min">${min}</div>`;
+            bar.innerHTML += `<div class="year-box box-max">${max}</div>`;
+            
+            currentUniverse.years.forEach(year => {
+                const pos = ((year - min) / range) * 100;
+                const isSelected = year === selectedYear;
+                
+                const marker = document.createElement('div');
+                marker.className = `year-line ${isSelected ? 'selected-marker' : ''}`;
+                marker.style.left = `${pos}%`;
+                marker.onclick = () => selectYear(year);
+                marker.innerHTML = `<div class="year-box box-above">${year}</div>`;
+                
+                bar.appendChild(marker);
+            });
+            
+            // Show/hide delete button
+            document.getElementById('delete-btn').style.display = 
+                selectedYear ? 'inline-block' : 'none';
         }
         
-        // --- HUD STUBS (Reverting strictly implies these were here) ---
         function toggleDistribution() {
             isDistributed = !isDistributed;
             alert("Distribution view not fully implemented in this block.");
         }
         
         function handleDeleteYear() {
-            if(confirm("Delete current year?")) {
-                // Logic stub
+            if(!selectedYear || !confirm(`Delete year ${selectedYear} and all its data?`)) return;
+            
+            const idx = currentUniverse.years.indexOf(selectedYear);
+            currentUniverse.years.splice(idx, 1);
+            delete plotsByYear[selectedYear];
+            
+            if(currentUniverse.years.length > 0) {
+                selectYear(currentUniverse.years[0]);
+            } else {
+                selectedYear = null;
+                document.getElementById('node-group').style.display = 'none';
+                renderTimeline();
             }
+            saveData();
         }
+
+        // --- SAVE/LOAD SYSTEM ---
+        function saveData() {
+            localStorage.setItem('alphaline_universe', JSON.stringify({
+                years: currentUniverse.years,
+                plots: plotsByYear
+            }));
+            document.getElementById('save-status').innerText = 'CHANGES SYNCED';
+            
+            // Brief flash to show save
+            setTimeout(() => {
+                document.getElementById('save-status').style.color = '#4a4';
+            }, 100);
+            setTimeout(() => {
+                document.getElementById('save-status').style.color = '#444';
+            }, 800);
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('alphaline_universe');
+            if(saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    currentUniverse.years = data.years || [];
+                    plotsByYear = data.plots || {};
+                    
+                    if(currentUniverse.years.length > 0) {
+                        selectYear(currentUniverse.years[0]);
+                    }
+                } catch(e) {
+                    console.error('Failed to load saved data:', e);
+                }
+            }
+            renderTimeline();
+        }
+
+        // Initialize on page load
+        loadData();
+        
+        // Allow Enter key to confirm year modal
+        document.getElementById('year-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') confirmNewYear();
+        });
     </script>
 </body>
 </html>
