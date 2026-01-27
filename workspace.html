@@ -34,22 +34,35 @@
         .back-btn:hover { color: #fff; }
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display:flex; gap:10px; }
         .nav-text strong { color: #fff; font-weight: 800; }
-        .title-sep { color: #333; }
         
         .status-block { margin-left: auto; display: flex; align-items: center; gap: 30px; text-align: right; }
-        .save-indicator { font-size: 0.6rem; color: #444; letter-spacing: 1px; font-weight: 600; transition: 0.3s; }
+        .save-indicator { font-size: 0.6rem; color: #444; letter-spacing: 1px; font-weight: 600; }
         .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.3; }
 
-        /* --- MODAL --- */
-        #year-modal {
+        /* --- MODALS & LIGHTBOX --- */
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
             display: none; justify-content: center; align-items: center; z-index: 3000;
         }
         .modal-content { background: #080808; border: 1px solid #333; padding: 30px; width: 300px; text-align: center; display:flex; flex-direction:column; gap:20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .modal-title { font-size: 0.7rem; color: #888; letter-spacing: 2px; text-transform: uppercase; }
         .modal-input { background: #111; border: 1px solid #333; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; text-align: center; outline: none; font-size: 1.2rem; }
-        .modal-input:focus { border-color: #fff; }
+        
+        /* Lightbox specific */
+        #lightbox-img-container { display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 90vw; max-height: 90vh; }
+        #lightbox-img { max-width: 100%; max-height: 80vh; border: 1px solid #333; box-shadow: 0 0 50px rgba(0,0,0,0.8); object-fit: contain; }
+        .lightbox-controls { display: flex; gap: 15px; }
+
+        /* --- TRASH ZONE --- */
+        #trash-zone {
+            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+            border: 2px dashed #444; border-radius: 50%; color: #444;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; z-index: 2500; transition: 0.3s;
+            opacity: 0; pointer-events: none; background: rgba(0,0,0,0.5);
+        }
+        body.global-dragging #trash-zone { opacity: 1; pointer-events: all; }
+        #trash-zone.drag-over { border-color: var(--danger); color: var(--danger); background: rgba(255, 68, 68, 0.1); transform: scale(1.1); }
 
         /* --- PLANE & GRID --- */
         #plane-container { 
@@ -62,68 +75,51 @@
             position: absolute; left: 50%; top: 50%; display: none; flex-direction: column; align-items: center; transform-origin: center; z-index: 100;
         }
 
-        /* --- CORE NODES --- */
-        .grid-node {
-            padding: 20px 40px; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center;
-        }
+        /* --- NODES --- */
+        .grid-node { padding: 20px 40px; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center; }
         .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 2.5rem; margin: 0; letter-spacing: 6px; font-weight: 300; }
         .node-label { font-size: 0.5rem; color: #888; letter-spacing: 4px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
         
-        .sub-node {
-            padding: 15px 30px; background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; text-align: center; min-width: 150px;
-        }
+        .sub-node { padding: 15px 30px; background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px; text-align: center; min-width: 150px; }
 
-        /* Synopsis Node */
-        .synopsis-node {
-            width: 400px; background: rgba(20, 20, 20, 0.9); border: 1px solid #333; border-radius: 8px; padding: 15px;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .synopsis-input {
-            width: 100%; background: transparent; border: none; color: #ddd; font-family: 'Inter', sans-serif; 
-            font-size: 0.8rem; line-height: 1.5; resize: none; outline: none; text-align: center; overflow: hidden;
-        }
+        .synopsis-node { width: 400px; background: rgba(20, 20, 20, 0.9); border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .synopsis-input { width: 100%; background: transparent; border: none; color: #ddd; font-family: 'Inter', sans-serif; font-size: 0.8rem; line-height: 1.5; resize: none; outline: none; text-align: center; overflow: hidden; }
 
-        /* Pipes & Connectors */
+        /* Pipes */
         .node-pipe { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; display: flex; justify-content: center; align-items: center; }
-        
-        .pipe-add {
-            position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #000; border: 1px solid #555;
-            color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; transform: scale(0.8);
-        }
-        .node-pipe:hover .pipe-add { opacity: 1; transform: scale(1); }
-        .branch-hub:hover .pipe-add { opacity: 1; transform: scale(1); }
+        .pipe-add { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #000; border: 1px solid #555; color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; transform: scale(0.8); }
+        .node-pipe:hover .pipe-add, .branch-hub:hover .pipe-add { opacity: 1; transform: scale(1); }
 
-        /* BRANCH HUB (The splitting mechanism) */
-        .branch-hub {
-            display: flex; align-items: center; justify-content: center; position: relative; height: 40px; width: 100%;
-        }
+        /* Branch Hub */
+        .branch-hub { display: flex; align-items: center; justify-content: center; position: relative; height: 40px; width: 100%; }
         .hub-center-line { width: 1px; height: 100%; background: rgba(255,255,255,0.2); position: relative; display:flex; justify-content:center; align-items:center; }
-        
         .hub-arm { width: 0px; height: 1px; background: rgba(255,255,255,0.2); transition: 0.3s; position: relative; }
         .hub-trigger { 
             width: 20px; height: 20px; border-radius: 50%; background: #000; border: 1px solid #555; color: #fff; 
             display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; 
             position: absolute; top: 50%; transform: translateY(-50%); opacity: 0; transition:0.2s;
         }
-        .branch-hub.active .hub-arm { width: 300px; } /* Width of side spacing */
+        .branch-hub.active .hub-arm { width: 300px; }
         .branch-hub.active .hub-trigger { opacity: 1; }
-        
         .trigger-left { left: 0; transform: translate(-50%, -50%); }
         .trigger-right { right: 0; transform: translate(50%, -50%); }
 
-
         /* --- PLOT COLUMNS --- */
         #plot-grid-container {
-            display: flex; align-items: flex-start; gap: 40px;
+            display: flex; align-items: flex-start; gap: 40px; justify-content: center;
+            /* Allow columns to push each other without constraint */
+            width: max-content; 
+            min-width: 100%;
         }
-        .plot-column { display: flex; flex-direction: column; align-items: center; min-width: 550px; }
+        .plot-column { display: flex; flex-direction: column; align-items: center; min-width: 550px; width: 550px; transition: transform 0.3s; }
         .side-column { opacity: 0.8; transform: scale(0.95); transform-origin: top center; }
-
+        /* When expanded or interactive, bring sides to full opacity */
+        .side-column:hover { opacity: 1; }
 
         /* --- PLOT & EVENT NODES --- */
         .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 0px; }
         .plot-node {
-            width: 550px; background: rgba(12, 12, 12, 0.85); border: 1px solid #333; border-radius: 15px; padding: 25px; box-sizing: border-box;
+            width: 100%; background: rgba(12, 12, 12, 0.85); border: 1px solid #333; border-radius: 15px; padding: 25px; box-sizing: border-box;
             display: flex; flex-direction: column; gap: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
         .plot-title-field {
@@ -140,15 +136,17 @@
         .event-text-container { flex-grow: 1; padding: 15px 20px; position: relative; display: flex; flex-direction: column; }
         .event-input {
             background: transparent; border: none; color: #ddd; resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
-            font-family: 'Inter', sans-serif; height: 100%; display: block;
+            font-family: 'Inter', sans-serif; height: 100%; display: block; overflow: hidden;
         }
+        .char-count { font-size: 0.5rem; color: #444; text-align: right; margin-top: 5px; font-family: 'JetBrains Mono'; }
 
         .event-image-container {
-            width: 140px; flex-shrink: 0; background: #111; border-left: 1px solid #222; 
+            width: 140px; flex-shrink: 0; /* Prevents squashing */ background: #111; border-left: 1px solid #222; 
             cursor: pointer; overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
         .event-node.flipped .event-image-container { border-left: none; border-right: 1px solid #222; }
-        .event-image-container img { width: 100%; height: 100%; object-fit: cover; }
+        .event-image-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .event-image-container:hover img { transform: scale(1.05); opacity: 0.8; }
         .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; }
 
         .event-tools {
@@ -199,7 +197,7 @@
     <header class="workspace-header">
         <div class="brand-block">
             <div class="back-btn" onclick="exitWorkspace()">←</div>
-            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">UNNAMED</span></div>
+            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE</div>
         </div>
         <div class="status-block">
             <div id="save-status" class="save-indicator">CHANGES SYNCED</div>
@@ -207,7 +205,7 @@
         </div>
     </header>
 
-    <div id="year-modal">
+    <div id="year-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-title">Temporal Coordinate</div>
             <input type="number" id="year-input" class="modal-input" placeholder="YYYY">
@@ -217,6 +215,19 @@
             </div>
         </div>
     </div>
+
+    <div id="lightbox" class="modal-overlay" onclick="closeLightbox(event)">
+        <div id="lightbox-img-container" onclick="event.stopPropagation()">
+            <img id="lightbox-img" src="" alt="Event Media">
+            <div class="lightbox-controls">
+                <button class="tm-btn" style="color:var(--danger)" onclick="deleteLightboxImage()">Delete</button>
+                <button class="tm-btn" onclick="replaceLightboxImage()">Replace</button>
+                <button class="tm-btn" onclick="document.getElementById('lightbox').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="trash-zone" title="Drop Plot here to delete">🗑</div>
 
     <div id="plane-container">
         <div id="node-group">
@@ -254,8 +265,6 @@
                 <div id="col-main" class="plot-column"></div>
                 <div id="col-right" class="plot-column side-column"></div>
             </div>
-
-            <div class="add-circle" onclick="appendPlotNode('main')">+</div>
         </div>
         
         <div id="timeline-hud">
@@ -270,15 +279,17 @@
 
     <script>
         let currentUniverse = { years: [] };
-        // New Data Structure: plotsByYear[year] = { synopsis: "", main: [], left: [], right: [] }
         let plotsByYear = {}; 
         let selectedYear = null;
         let isDistributed = false;
         let panX = 0, panY = 0, gridZoom = 1;
 
-        // --- Drag & Drop State ---
+        // Lightbox State
+        let lbContext = { pIdx: null, eIdx: null, col: null };
+
+        // Drag State
         let dragSrcEl = null;
-        let dragType = null; // 'plot' or 'event'
+        let dragType = null; 
 
         function updateClock() {
             const now = new Date();
@@ -292,20 +303,12 @@
             window.top.document.body.classList.remove('workspace-mode'); 
         }
 
-        // Initialize from URL
-        const params = new URLSearchParams(window.location.search);
-        const universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-        const active = universes.find(u => u.id == params.get('id'));
-        if(active) {
-            document.getElementById('active-universe-name').innerText = active.name.toUpperCase();
-        }
-
-        // --- CAMERA CONTROLS ---
+        // Camera Controls
         const plane = document.getElementById('plane-container');
         const nodeGroup = document.getElementById('node-group');
 
         plane.onmousedown = (e) => {
-            if (e.target.closest('.plot-node') || e.target.closest('.event-node') || e.target.closest('.synopsis-node') || e.target.closest('#timeline-hud') || e.target.closest('.workspace-header')) return;
+            if (e.target.closest('.plot-node') || e.target.closest('.modal-overlay') || e.target.closest('.event-node') || e.target.closest('.synopsis-node') || e.target.closest('#timeline-hud') || e.target.closest('.workspace-header')) return;
             let sx = e.clientX - panX, sy = e.clientY - panY;
             plane.onmousemove = (me) => {
                 panX = me.clientX - sx; panY = me.clientY - sy;
@@ -328,32 +331,24 @@
             nodeGroup.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${gridZoom})`;
         }
 
-        // --- SYNOPSIS LOGIC ---
+        // Logic
+        function ensureYearData(y) {
+            if (!plotsByYear[y]) plotsByYear[y] = { synopsis: "", main: [], left: [], right: [] };
+        }
+
         function handleSynopsis(el) {
             autoSize(el);
-            if(selectedYear && plotsByYear[selectedYear]) {
-                plotsByYear[selectedYear].synopsis = el.value;
-            }
+            if(selectedYear) plotsByYear[selectedYear].synopsis = el.value;
         }
 
-        // --- PLOT LOGIC ---
-        function ensureYearData(y) {
-            if (!plotsByYear[y]) {
-                plotsByYear[y] = { synopsis: "", main: [], left: [], right: [] };
-            } else if (Array.isArray(plotsByYear[y])) {
-                // Migration if old format existed in memory
-                plotsByYear[y] = { synopsis: "", main: plotsByYear[y], left: [], right: [] };
-            }
-        }
-
-        function addNewPlotNode(index, column = 'main') {
+        function addNewPlotNode(index, column) {
             if (!selectedYear) return;
             ensureYearData(selectedYear);
             plotsByYear[selectedYear][column].splice(index, 0, { title: 'NEW PLOT', events: [] });
             renderPlotStack();
         }
 
-        function appendPlotNode(column = 'main') {
+        function appendPlotNode(column) {
             if (!selectedYear) return;
             ensureYearData(selectedYear);
             plotsByYear[selectedYear][column].push({ title: 'NEW PLOT', events: [] });
@@ -366,21 +361,19 @@
         }
 
         function renderPlotStack() {
-            // Get data
             const data = plotsByYear[selectedYear];
             if(!data) return;
 
-            // Update Synopsis
+            // Synopsis
             const synBox = document.getElementById('synopsis-text');
             synBox.value = data.synopsis || "";
             autoSize(synBox);
 
-            // Update Branch Hub (Show side triggers only if main plot exists)
+            // Hub Trigger
             const hub = document.getElementById('branch-hub');
             if(data.main.length > 0) hub.classList.add('active');
             else hub.classList.remove('active');
 
-            // Render Columns
             renderColumn('col-left', data.left, 'left');
             renderColumn('col-main', data.main, 'main');
             renderColumn('col-right', data.right, 'right');
@@ -395,9 +388,8 @@
                 wrapper.className = 'plot-node-wrapper draggable';
                 wrapper.setAttribute('draggable', 'true');
                 wrapper.dataset.index = pIdx;
-                wrapper.dataset.col = colName; // Important for Drag Drop
+                wrapper.dataset.col = colName;
                 
-                // Plot Node Content
                 const node = document.createElement('div');
                 node.className = 'plot-node';
                 node.innerHTML = `
@@ -406,26 +398,26 @@
                     <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx}, '${colName}')">+ Add Event</button>
                 `;
 
-                // Render Events
+                // Events
                 const evCont = node.querySelector(`#ev-container-${colName}-${pIdx}`);
                 plot.events.forEach((ev, eIdx) => {
                     const evNode = document.createElement('div');
-                    const isFlipped = ev.flipped ? 'flipped' : '';
-                    evNode.className = `event-node draggable ${isFlipped}`;
+                    evNode.className = `event-node draggable ${ev.flipped ? 'flipped' : ''}`;
                     evNode.setAttribute('draggable', 'true');
                     evNode.dataset.pIdx = pIdx;
                     evNode.dataset.eIdx = eIdx;
-                    evNode.dataset.col = colName; // Pass column
+                    evNode.dataset.col = colName;
                     
                     evNode.innerHTML = `
                         <div class="event-text-container">
                             <div class="event-tools">
                                 <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx}, '${colName}')">↔</div>
-                                <div class="tool-btn tool-delete" title="Delete" onclick="deleteEvent(${pIdx}, ${eIdx}, '${colName}')">×</div>
+                                <div class="tool-btn tool-delete" title="Delete Event" onclick="deleteEvent(${pIdx}, ${eIdx}, '${colName}')">×</div>
                             </div>
-                            <textarea class="event-input" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
+                            <textarea class="event-input" maxlength="500" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
+                            <div class="char-count">${ev.text.length}/500</div>
                         </div>
-                        <div class="event-image-container" onclick="triggerImg(${pIdx}, ${eIdx}, '${colName}')">
+                        <div class="event-image-container" onclick="openLightbox(${pIdx}, ${eIdx}, '${colName}')">
                             ${ev.img ? `<img src="${ev.img}">` : '<span class="img-placeholder">ADD MEDIA</span>'}
                         </div>
                     `;
@@ -437,7 +429,7 @@
                 setupDnD(wrapper, 'plot');
                 wrapper.appendChild(node);
 
-                // Pipe below plot
+                // Connector Pipe + Add Button
                 const pipe = document.createElement('div');
                 pipe.className = 'node-pipe';
                 pipe.innerHTML = `<div class="pipe-add" onclick="addNewPlotNode(${pIdx + 1}, '${colName}')">+</div>`;
@@ -445,71 +437,131 @@
                 
                 stack.appendChild(wrapper);
             });
+
+            // Trailing (+) for creating new node at the bottom of the column
+            if(plots.length > 0) {
+                 const trailingAdd = document.createElement('div');
+                 trailingAdd.className = 'add-circle';
+                 trailingAdd.style.marginTop = '20px';
+                 trailingAdd.onclick = () => appendPlotNode(colName);
+                 trailingAdd.innerText = '+';
+                 stack.appendChild(trailingAdd);
+            }
         }
 
         // --- ACTIONS ---
         function toggleEventSide(pIdx, eIdx, col) {
-            const eventData = plotsByYear[selectedYear][col][pIdx].events[eIdx];
-            eventData.flipped = !eventData.flipped;
+            const ev = plotsByYear[selectedYear][col][pIdx].events[eIdx];
+            ev.flipped = !ev.flipped;
             renderPlotStack();
         }
 
         function deleteEvent(pIdx, eIdx, col) {
-            if(confirm("Permanently delete this event?")) {
+            if(confirm("Delete this event?")) {
                 plotsByYear[selectedYear][col][pIdx].events.splice(eIdx, 1);
                 renderPlotStack();
             }
         }
 
-        // --- DRAG AND DROP HANDLERS ---
+        // --- LIGHTBOX ---
+        function openLightbox(pIdx, eIdx, col) {
+            const ev = plotsByYear[selectedYear][col][pIdx].events[eIdx];
+            if(!ev.img) {
+                // Trigger upload if no image
+                triggerImgUpload(pIdx, eIdx, col);
+                return;
+            }
+            lbContext = { pIdx, eIdx, col };
+            document.getElementById('lightbox-img').src = ev.img;
+            document.getElementById('lightbox').style.display = 'flex';
+        }
+
+        function closeLightbox(e) {
+            if(e.target.id === 'lightbox') document.getElementById('lightbox').style.display = 'none';
+        }
+
+        function deleteLightboxImage() {
+            if(confirm("Remove image?")) {
+                plotsByYear[selectedYear][lbContext.col][lbContext.pIdx].events[lbContext.eIdx].img = null;
+                document.getElementById('lightbox').style.display = 'none';
+                renderPlotStack();
+            }
+        }
+
+        function replaceLightboxImage() {
+            triggerImgUpload(lbContext.pIdx, lbContext.eIdx, lbContext.col);
+            document.getElementById('lightbox').style.display = 'none';
+        }
+
+        function triggerImgUpload(pIdx, eIdx, col) {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = 'image/*';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.onload = r => {
+                    plotsByYear[selectedYear][col][pIdx].events[eIdx].img = r.target.result;
+                    renderPlotStack();
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            };
+            input.click();
+        }
+
+        // --- DRAG & DROP ---
         function setupDnD(el, type) {
             el.addEventListener('dragstart', (e) => {
                 if(e.target.closest('.tool-btn')) return; 
                 dragSrcEl = el;
                 dragType = type;
+                document.body.classList.add('global-dragging');
                 el.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
             });
             el.addEventListener('dragover', (e) => {
-                if (e.preventDefault) e.preventDefault();
+                e.preventDefault();
                 return false;
             });
             el.addEventListener('dragenter', () => el.classList.add('drag-over'));
             el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+            
+            // Trash Logic
+            if(type === 'plot') {
+                const trash = document.getElementById('trash-zone');
+                trash.addEventListener('dragenter', () => trash.classList.add('drag-over'));
+                trash.addEventListener('dragleave', () => trash.classList.remove('drag-over'));
+                trash.addEventListener('dragover', (e) => e.preventDefault());
+                trash.addEventListener('drop', (e) => {
+                    e.stopPropagation();
+                    if(dragType === 'plot') {
+                        if(confirm("Delete this entire Plot Node and its events?")) {
+                            const list = plotsByYear[selectedYear][dragSrcEl.dataset.col];
+                            list.splice(dragSrcEl.dataset.index, 1);
+                            renderPlotStack();
+                        }
+                    }
+                });
+            }
+
             el.addEventListener('drop', (e) => {
-                if (e.stopPropagation) e.stopPropagation();
+                e.stopPropagation();
                 if (dragSrcEl !== el && dragType === type) {
                     if (type === 'plot') {
-                        // Plot Reordering (Allows Cross Column)
-                        movePlot(
-                            dragSrcEl.dataset.col, parseInt(dragSrcEl.dataset.index),
-                            el.dataset.col, parseInt(el.dataset.index)
-                        );
-                    } else {
-                        // Event Reordering (Same Plot restriction removed for future flexibility, currently simple swap)
-                        // For simplicity in this step, restrict event DnD to same column/same plot or implement full move logic
-                        if (dragSrcEl.dataset.col === el.dataset.col && dragSrcEl.dataset.pIdx === el.dataset.pIdx) {
-                             reorderEvents(
-                                el.dataset.col,
-                                parseInt(dragSrcEl.dataset.pIdx), parseInt(dragSrcEl.dataset.eIdx),
-                                parseInt(el.dataset.pIdx), parseInt(el.dataset.eIdx)
-                            );
-                        }
+                        movePlot(dragSrcEl.dataset.col, parseInt(dragSrcEl.dataset.index), el.dataset.col, parseInt(el.dataset.index));
+                    } else if (dragSrcEl.dataset.col === el.dataset.col && dragSrcEl.dataset.pIdx === el.dataset.pIdx) {
+                         reorderEvents(el.dataset.col, parseInt(dragSrcEl.dataset.pIdx), parseInt(dragSrcEl.dataset.eIdx), parseInt(el.dataset.pIdx), parseInt(el.dataset.eIdx));
                     }
                 }
                 return false;
             });
             el.addEventListener('dragend', () => {
-                document.querySelectorAll('.draggable').forEach(d => d.classList.remove('dragging', 'drag-over'));
+                document.body.classList.remove('global-dragging');
+                document.querySelectorAll('.draggable, #trash-zone').forEach(d => d.classList.remove('dragging', 'drag-over'));
             });
         }
 
         function movePlot(fromCol, fromIdx, toCol, toIdx) {
-            const fromList = plotsByYear[selectedYear][fromCol];
-            const toList = plotsByYear[selectedYear][toCol];
-            
-            const [moved] = fromList.splice(fromIdx, 1);
-            toList.splice(toIdx, 0, moved);
+            const [moved] = plotsByYear[selectedYear][fromCol].splice(fromIdx, 1);
+            plotsByYear[selectedYear][toCol].splice(toIdx, 0, moved);
             renderPlotStack();
         }
 
@@ -524,25 +576,13 @@
         function handleEventText(el, pIdx, eIdx, col) {
             autoSize(el);
             plotsByYear[selectedYear][col][pIdx].events[eIdx].text = el.value;
+            // Update counter
+            el.nextElementSibling.innerText = `${el.value.length}/500`;
         }
 
         function autoSize(el) {
             el.style.height = 'auto';
             el.style.height = el.scrollHeight + 'px';
-        }
-
-        function triggerImg(pIdx, eIdx, col) {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = 'image/*';
-            input.onchange = e => {
-                const reader = new FileReader();
-                reader.onload = r => {
-                    plotsByYear[selectedYear][col][pIdx].events[eIdx].img = r.target.result;
-                    renderPlotStack();
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            };
-            input.click();
         }
 
         // --- TIMELINE NAV ---
@@ -576,24 +616,19 @@
             bar.innerHTML = '<div class="timeline-axis"></div>';
             const yrs = currentUniverse.years;
             if (!yrs.length) return;
-            
             const min = yrs[0], max = yrs[yrs.length-1], range = max - min;
 
             yrs.forEach((y, i) => {
                 const marker = document.createElement('div');
                 const pos = isDistributed ? (i/(yrs.length-1||1))*100 : ((y-min)/(range||1))*100;
-                
                 marker.className = (i===0 || i===yrs.length-1) ? 'year-dot' : 'year-line';
                 if (y === selectedYear) marker.classList.add('selected-marker');
-                
                 marker.style.left = pos + '%';
                 marker.onclick = () => selectYear(y);
-                
                 const box = document.createElement('div');
                 box.className = 'year-box ' + (i===0 ? 'box-min' : (i===yrs.length-1 ? 'box-max' : 'box-above'));
                 box.innerText = y;
                 marker.appendChild(box);
-                
                 bar.appendChild(marker);
             });
         }
@@ -601,7 +636,7 @@
         function toggleDistribution() { isDistributed = !isDistributed; renderTimeline(); }
         
         function handleDeleteYear() {
-            if (confirm("Purge this temporal coordinate and all associated plot nodes?")) {
+            if (confirm("Purge this temporal coordinate?")) {
                 currentUniverse.years = currentUniverse.years.filter(y => y !== selectedYear);
                 delete plotsByYear[selectedYear];
                 selectedYear = null;
