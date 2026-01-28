@@ -9,11 +9,46 @@
         
         :root { 
             --bg: #000; 
-            --ui-bg: #080808; 
-            --text-dim: #666; 
+            --ui-bg: #0d0d0d; 
+            --text-dim: #999; 
             --accent: #fff; 
             --danger: #ff4444; 
-            --border: #222;
+            --border: #333;
+            --grid-line: rgba(255, 255, 255, 0.08);
+        }
+
+        body.light-mode {
+            --bg: #f5f5f5;
+            --ui-bg: #e8e8e8;
+            --text-dim: #666;
+            --border: #ccc;
+            --grid-line: rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode #node-group .grid-node,
+        body.light-mode #node-group .sub-node,
+        body.light-mode #node-group .synopsis-node,
+        body.light-mode .plot-node,
+        body.light-mode .event-node {
+            color: #1a1a1a;
+        }
+
+        body.light-mode .node-label {
+            color: #555;
+        }
+
+        body.light-mode #grid-year-display,
+        body.light-mode .plot-title-field,
+        body.light-mode .episode-title-input,
+        body.light-mode .synopsis-input,
+        body.light-mode .event-input {
+            color: #1a1a1a;
+        }
+
+        body.light-mode .episode-title-input::placeholder,
+        body.light-mode .synopsis-input::placeholder,
+        body.light-mode .event-input::placeholder {
+            color: #aaa;
         }
         
         html, body { 
@@ -67,8 +102,8 @@
         /* --- PLANE & GRID --- */
         #plane-container { 
             width: 100vw; height: calc(100vh - 65px); margin-top: 65px;
-            background-color: #000;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-color: var(--bg);
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
             background-size: 20px 20px; position: relative; overflow: hidden; cursor: crosshair;
         }
         #node-group {
@@ -84,9 +119,17 @@
         }
 
         /* --- NODES --- */
-        .grid-node { padding: 20px 40px; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center; }
-        .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 2.5rem; margin: 0; letter-spacing: 6px; font-weight: 300; }
-        .node-label { font-size: 0.5rem; color: #888; letter-spacing: 4px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
+        .grid-node { 
+            padding: 30px 60px; 
+            background: rgba(15, 15, 15, 0.75); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 3rem; margin: 0; letter-spacing: 6px; font-weight: 300; }
+        .node-label { font-size: 0.55rem; color: #888; letter-spacing: 4px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
         
         .episode-title-input {
             background: transparent;
@@ -94,12 +137,12 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             color: #999;
             font-family: 'Inter', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             text-align: center;
             outline: none;
-            padding: 8px 20px;
-            margin-top: 10px;
-            width: 200px;
+            padding: 10px 30px;
+            margin-top: 12px;
+            width: 280px;
             transition: 0.2s;
         }
 
@@ -113,13 +156,13 @@
         }
         
         .sub-node { 
-            padding: 15px 30px; 
+            padding: 20px 40px; 
             background: rgba(10, 10, 10, 0.6); 
             backdrop-filter: blur(8px); 
             border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 50px; 
             text-align: center; 
-            min-width: 150px; 
+            min-width: 200px; 
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -136,8 +179,29 @@
             50% { transform: scale(1.02); }
         }
 
-        .synopsis-node { width: 400px; background: rgba(20, 20, 20, 0.9); border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .synopsis-input { width: 100%; background: transparent; border: none; color: #ddd; font-family: 'Inter', sans-serif; font-size: 0.8rem; line-height: 1.5; resize: none; outline: none; text-align: center; overflow: hidden; }
+        .synopsis-node { 
+            width: 500px; 
+            background: rgba(20, 20, 20, 0.9); 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .synopsis-input { 
+            width: 100%; 
+            background: transparent; 
+            border: none; 
+            color: #ddd; 
+            font-family: 'Inter', sans-serif; 
+            font-size: 0.85rem; 
+            line-height: 1.5; 
+            resize: none; 
+            outline: none; 
+            text-align: center; 
+            overflow: hidden; 
+        }
 
         /* Pipes */
         .node-pipe { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; display: flex; justify-content: center; align-items: center; }
@@ -868,6 +932,116 @@
             text-align: center;
             line-height: 1.5;
         }
+
+        /* --- SETTINGS PANEL --- */
+        .settings-panel {
+            width: 400px;
+            background: rgba(12, 12, 12, 0.98);
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+        }
+
+        .settings-header h2 {
+            font-size: 0.9rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+
+        .close-settings {
+            font-size: 2rem;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .close-settings:hover {
+            color: #fff;
+        }
+
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .setting-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .setting-label {
+            font-size: 0.65rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 180px;
+            height: 40px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            left: 4px;
+            width: 80px;
+            height: 32px;
+            background: #fff;
+            border-radius: 16px;
+            transition: 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            left: calc(100% - 84px);
+        }
+
+        .toggle-text-left,
+        .toggle-text-right {
+            font-size: 0.7rem;
+            font-weight: 600;
+            z-index: 1;
+            transition: 0.3s;
+        }
+
+        .toggle-text-left {
+            color: #1a1a1a;
+        }
+
+        .toggle-text-right {
+            color: #666;
+        }
+
+        .toggle-switch.active .toggle-text-left {
+            color: #666;
+        }
+
+        .toggle-switch.active .toggle-text-right {
+            color: #1a1a1a;
+        }
     </style>
 </head>
 <body>
@@ -1081,11 +1255,32 @@
         <div id="timeline-hud">
             <div id="timeline-bar"></div>
             <div style="display: flex; gap: 10px;">
-                <button class="tm-btn" onclick="openSettingsModal()" style="opacity: 0.3; cursor: not-allowed;" disabled>⚙</button>
+                <button class="tm-btn" onclick="openSettingsModal()">⚙</button>
                 <button class="tm-btn" onclick="toggleDistribution()">Toggle Distribution</button>
                 <button class="tm-btn" onclick="openYearModal()">New Episode</button>
                 <button id="center-btn" class="tm-btn" style="display:none;" onclick="centerAndZoomNodes()">Center Grid</button>
                 <button id="delete-btn" class="tm-btn" style="color:var(--danger); display:none;" onclick="handleDeleteYear()">Delete Episode</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-overlay" class="modal-overlay" style="display:none; z-index:3500;">
+        <div class="settings-panel" onclick="event.stopPropagation()">
+            <div class="settings-header">
+                <h2>SETTINGS</h2>
+                <div class="close-settings" onclick="closeSettingsModal()">×</div>
+            </div>
+            
+            <div class="settings-content">
+                <div class="setting-row">
+                    <label class="setting-label">Theme Mode</label>
+                    <div class="toggle-switch" onclick="toggleThemeMode()">
+                        <div id="theme-toggle-slider" class="toggle-slider"></div>
+                        <span class="toggle-text-left">Dark</span>
+                        <span class="toggle-text-right">Light</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1642,7 +1837,36 @@
         }
         
         function openSettingsModal() {
-            alert("Settings panel - functionality to be implemented");
+            document.getElementById('settings-overlay').style.display = 'flex';
+            // Update toggle switch to reflect current theme
+            const toggle = document.getElementById('theme-toggle-slider').parentElement;
+            if (document.body.classList.contains('light-mode')) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-overlay').style.display = 'none';
+        }
+
+        function toggleThemeMode() {
+            const toggle = document.getElementById('theme-toggle-slider').parentElement;
+            toggle.classList.toggle('active');
+            document.body.classList.toggle('light-mode');
+            
+            // Save preference
+            const isLightMode = document.body.classList.contains('light-mode');
+            localStorage.setItem('alphaline_theme', isLightMode ? 'light' : 'dark');
+        }
+
+        // Load theme preference on page load
+        function loadThemePreference() {
+            const savedTheme = localStorage.getItem('alphaline_theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
         }
 
         // --- CHARACTER JOURNAL ---
@@ -1790,25 +2014,25 @@
             draggedCharacter = char;
             isDragging = true;
 
-            // Create visual clone
+            // Create visual clone - styled circle with name
             dragClone = document.createElement('div');
-            dragClone.className = 'character-avatar';
             dragClone.style.position = 'fixed';
-            dragClone.style.width = '100px';
-            dragClone.style.height = '100px';
+            dragClone.style.width = '120px';
+            dragClone.style.height = '120px';
             dragClone.style.borderRadius = '50%';
             dragClone.style.pointerEvents = 'none';
             dragClone.style.zIndex = '5000';
-            dragClone.style.opacity = '0.8';
-            dragClone.style.border = `3px solid ${char.color}`;
-            dragClone.style.willChange = 'transform'; // GPU acceleration
-            if (char.image) {
-                dragClone.style.backgroundImage = `url('${char.image}')`;
-                dragClone.style.backgroundSize = 'cover';
-                dragClone.style.backgroundPosition = 'center';
-            } else {
-                dragClone.style.backgroundColor = '#111';
-            }
+            dragClone.style.opacity = '0.95';
+            dragClone.style.background = '#000';
+            dragClone.style.border = `4px solid ${char.color}`;
+            dragClone.style.willChange = 'transform';
+            dragClone.style.display = 'flex';
+            dragClone.style.alignItems = 'center';
+            dragClone.style.justifyContent = 'center';
+            dragClone.style.boxShadow = '0 10px 30px rgba(0,0,0,0.8)';
+            
+            // Add character name
+            dragClone.innerHTML = `<div style="color: #fff; font-size: 0.75rem; font-weight: 600; text-align: center; padding: 10px; letter-spacing: 0.5px;">${char.name}</div>`;
 
             document.body.appendChild(dragClone);
             updateDragClone(e);
@@ -1820,7 +2044,7 @@
         function updateDragClone(e) {
             if (dragClone && isDragging) {
                 // Use transform for better performance
-                dragClone.style.transform = `translate(${e.clientX - 50}px, ${e.clientY - 50}px)`;
+                dragClone.style.transform = `translate(${e.clientX - 60}px, ${e.clientY - 60}px)`;
             }
         }
 
@@ -2121,6 +2345,7 @@
 
         // Initialize on page load
         initTrashZone(); // Setup trash zone ONCE
+        loadThemePreference(); // Load saved theme
         loadData();
         
         // Allow Enter key to confirm year modal
