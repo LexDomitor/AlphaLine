@@ -415,6 +415,25 @@
             color: #fff;
         }
 
+        .drag-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.85rem;
+            color: #4a4;
+            letter-spacing: 1px;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        .drag-feedback.show {
+            opacity: 1;
+        }
+
         .character-journal {
             width: 800px;
             max-height: 60vh;
@@ -903,6 +922,7 @@
                 <div id="character-drag-zone" class="character-drag-zone">
                     <div class="drag-zone-border"></div>
                     <div class="drag-zone-text">Drag Character Profile here to add them to the Scene</div>
+                    <div id="drag-feedback" class="drag-feedback"></div>
                 </div>
             </div>
 
@@ -921,7 +941,7 @@
     </div>
 
     <!-- Character Profile Editor -->
-    <div id="character-editor-overlay" class="modal-overlay" style="display:none; z-index:4000;" onclick="closeCharacterEditor()">
+    <div id="character-editor-overlay" class="modal-overlay" style="display:none; z-index:4000;">
         <div class="character-editor-panel" onclick="event.stopPropagation()">
             <div class="editor-header">
                 <h2 id="editor-title">NEW CHARACTER</h2>
@@ -1124,8 +1144,14 @@
         }
         setInterval(updateClock, 1000); updateClock();
 
-        function exitWorkspace() { 
-            window.location.href = 'universes.html';
+        function exitWorkspace() {
+            // Send message to parent window to restore panels
+            window.parent.postMessage('RESTORE_PANELS', '*');
+            
+            // Navigate back to universes page
+            setTimeout(() => {
+                window.location.href = 'universes.html';
+            }, 50);
         }
 
         // Camera Controls
@@ -1159,8 +1185,8 @@
         // Center and zoom the node graph
         function centerAndZoomNodes() {
             panX = 0;
-            panY = -100; // Offset slightly up to account for timeline HUD
-            gridZoom = 1;
+            panY = -250; // Offset up to show Episode number, title, characters, synopsis, and plot column tops
+            gridZoom = 0.8; // Zoom out slightly to see more content
             updateGrid();
         }
 
@@ -1757,10 +1783,12 @@
         // --- DRAG CHARACTER TO SCENE ---
         let draggedCharacter = null;
         let dragClone = null;
+        let isDragging = false;
 
         function startCharacterDrag(e, char) {
             e.preventDefault();
             draggedCharacter = char;
+            isDragging = true;
 
             // Create visual clone
             dragClone = document.createElement('div');
@@ -1773,6 +1801,7 @@
             dragClone.style.zIndex = '5000';
             dragClone.style.opacity = '0.8';
             dragClone.style.border = `3px solid ${char.color}`;
+            dragClone.style.willChange = 'transform'; // GPU acceleration
             if (char.image) {
                 dragClone.style.backgroundImage = `url('${char.image}')`;
                 dragClone.style.backgroundSize = 'cover';
@@ -1789,41 +1818,47 @@
         }
 
         function updateDragClone(e) {
-            if (dragClone) {
-                dragClone.style.left = (e.clientX - 50) + 'px';
-                dragClone.style.top = (e.clientY - 50) + 'px';
+            if (dragClone && isDragging) {
+                // Use transform for better performance
+                dragClone.style.transform = `translate(${e.clientX - 50}px, ${e.clientY - 50}px)`;
             }
         }
 
         function onCharacterDragMove(e) {
-            updateDragClone(e);
+            if (!isDragging) return;
             
-            // Check if over drag zone
-            const dragZone = document.getElementById('character-drag-zone');
-            const dragRect = dragZone.getBoundingClientRect();
-            const isOverDrag = e.clientX >= dragRect.left && e.clientX <= dragRect.right && e.clientY >= dragRect.top && e.clientY <= dragRect.bottom;
-            
-            // Check if over trash zone
-            const trashZone = document.getElementById('character-trash-zone');
-            const trashRect = trashZone.getBoundingClientRect();
-            const isOverTrash = e.clientX >= trashRect.left && e.clientX <= trashRect.right && e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
-            
-            if (isOverDrag) {
-                dragZone.classList.add('drag-over');
-            } else {
-                dragZone.classList.remove('drag-over');
-            }
+            // Throttle updates for performance
+            requestAnimationFrame(() => {
+                updateDragClone(e);
+                
+                // Check if over drag zone
+                const dragZone = document.getElementById('character-drag-zone');
+                const dragRect = dragZone.getBoundingClientRect();
+                const isOverDrag = e.clientX >= dragRect.left && e.clientX <= dragRect.right && e.clientY >= dragRect.top && e.clientY <= dragRect.bottom;
+                
+                // Check if over trash zone
+                const trashZone = document.getElementById('character-trash-zone');
+                const trashRect = trashZone.getBoundingClientRect();
+                const isOverTrash = e.clientX >= trashRect.left && e.clientX <= trashRect.right && e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
+                
+                if (isOverDrag) {
+                    dragZone.classList.add('drag-over');
+                } else {
+                    dragZone.classList.remove('drag-over');
+                }
 
-            if (isOverTrash) {
-                trashZone.classList.add('drag-over');
-            } else {
-                trashZone.classList.remove('drag-over');
-            }
+                if (isOverTrash) {
+                    trashZone.classList.add('drag-over');
+                } else {
+                    trashZone.classList.remove('drag-over');
+                }
+            });
         }
 
         function onCharacterDragEnd(e) {
             document.removeEventListener('mousemove', onCharacterDragMove);
             document.removeEventListener('mouseup', onCharacterDragEnd);
+            isDragging = false;
 
             const dragZone = document.getElementById('character-drag-zone');
             const trashZone = document.getElementById('character-trash-zone');
@@ -1842,6 +1877,7 @@
                 }
             } else if (isOverDrag && draggedCharacter && selectedYear) {
                 addCharacterToScene(draggedCharacter.id);
+                showDragFeedback(`${draggedCharacter.name} was added to the Episode.`);
             }
 
             dragZone.classList.remove('drag-over');
@@ -1852,6 +1888,16 @@
                 dragClone = null;
             }
             draggedCharacter = null;
+        }
+
+        function showDragFeedback(message) {
+            const feedback = document.getElementById('drag-feedback');
+            feedback.textContent = message;
+            feedback.classList.add('show');
+            
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
         }
 
         // --- SCENE CHARACTER MANAGEMENT ---
