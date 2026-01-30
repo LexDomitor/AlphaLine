@@ -56,7 +56,7 @@
             --hud-bg: #0a0a0a;
             --hud-text: #fff;
             --hud-border: #222;
-            --pipe-color: rgba(30, 30, 30, 0.4);
+            --pipe-color: rgba(255, 255, 255, 0.2);
         }
 
         /* Light on Dark - Dark background, Light nodes */
@@ -65,14 +65,14 @@
             --ui-bg: #0d0d0d;
             --text-primary: #1a1a1a;
             --text-dim: #666;
-            --border: #333;
+            --border: #ddd;
             --grid-line: rgba(255, 255, 255, 0.08);
             --node-bg: rgba(255, 255, 255, 0.95);
             --node-border: rgba(0, 0, 0, 0.1);
             --panel-bg: rgba(12, 12, 12, 0.85);
-            --hud-bg: #0a0a0a;
-            --hud-text: #fff;
-            --hud-border: #222;
+            --hud-bg: #fff;
+            --hud-text: #1a1a1a;
+            --hud-border: #ddd;
             --pipe-color: rgba(200, 200, 200, 0.4);
         }
 
@@ -88,6 +88,22 @@
         body.theme-light-on-dark .synopsis-input,
         body.theme-light-on-dark .event-input {
             color: #1a1a1a;
+        }
+
+        /* Light-on-Dark: Override backgrounds to match Light mode */
+        body.theme-light-on-dark .plot-title-field,
+        body.theme-light-on-dark .episode-title-input,
+        body.theme-light-on-dark .synopsis-input,
+        body.theme-light-on-dark .event-input {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Light-on-Dark: Override node backgrounds */
+        body.theme-light-on-dark .plot-node,
+        body.theme-light-on-dark .event-node,
+        body.theme-light-on-dark .synopsis-node,
+        body.theme-light-on-dark .event-text-container {
+            background: rgba(255, 255, 255, 0.95);
         }
 
         body.theme-light .node-label,
@@ -453,16 +469,16 @@
             justify-content: center; 
             align-items: center;
             position: relative;
-            width: 213px;
-            height: 160px;
-            min-width: 213px;
-            max-width: 213px;
-            min-height: 160px;
-            max-height: 160px;
+            width: 284px;
+            height: 213px;
+            min-width: 284px;
+            max-width: 284px;
+            min-height: 213px;
+            max-height: 213px;
         }
         .event-node.flipped .event-image-container { border-left: none; border-right: 2px solid var(--border); }
-        .event-image-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
-        .event-image-container:hover img { transform: scale(1.05); opacity: 0.8; }
+        .event-image-container img { width: 100%; height: 100%; object-fit: contain; transition: 0.3s; }
+        .event-image-container:hover img { opacity: 0.8; }
         .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; position: absolute; }
 
         .event-tools {
@@ -1809,7 +1825,7 @@
         <div id="timeline-hud">
             <div id="timeline-bar"></div>
             <div style="display: flex; gap: 10px;">
-                <button class="tm-btn" onclick="openSettingsModal()" style="font-size: 1rem; padding: 4px 10px;">🔦</button>
+                <button class="tm-btn" onclick="openSettingsModal()" style="font-size: 1.2rem; padding: 4px 10px;">⚙</button>
                 <button class="tm-btn" onclick="toggleDistribution()">Toggle Distribution</button>
                 <button class="tm-btn" onclick="openYearModal()">New Episode</button>
                 <button id="center-btn" class="tm-btn" style="display:none;" onclick="resetGraphView()">Reset Graph View</button>
@@ -2247,13 +2263,23 @@
             const input = document.createElement('input');
             input.type = 'file'; input.accept = 'image/*';
             input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Warn about large files
+                const fileSizeMB = file.size / 1024 / 1024;
+                if (fileSizeMB > 0.5) {
+                    const proceed = confirm(`⚠️ Large Image (${fileSizeMB.toFixed(1)}MB)\n\nLarge images may exceed browser storage limits.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 500KB\n\nContinue anyway?`);
+                    if (!proceed) return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = r => {
                     plotsByYear[selectedYear][col][pIdx].events[eIdx].img = r.target.result;
                     renderPlotStack();
                     saveData();
                 };
-                reader.readAsDataURL(e.target.files[0]);
+                reader.readAsDataURL(file);
             };
             input.click();
         }
@@ -2365,8 +2391,8 @@
         }
 
         function updateColumnWidths() {
-            // All events are now fixed width: 420px text + 40px padding + 213px image = 673px
-            const eventWidth = 673;
+            // All events are now fixed width: 420px text + 284px image = 704px
+            const eventWidth = 704;
             
             ['left', 'main', 'right'].forEach(colName => {
                 const column = document.getElementById(`col-${colName}`);
@@ -2378,13 +2404,13 @@
                 
                 column.style.width = `${columnWidth}px`;
                 
-                // Offset side columns to prevent overlap
+                // Offset side columns to prevent overlap (halved distance)
                 if (colName === 'left') {
-                    const offset = columnWidth - 550;
+                    const offset = (columnWidth - 550) / 2;
                     column.style.transform = `translateX(-${offset}px) scale(0.95)`;
                     column.style.transformOrigin = 'top right';
                 } else if (colName === 'right') {
-                    const offset = columnWidth - 550;
+                    const offset = (columnWidth - 550) / 2;
                     column.style.transform = `translateX(${offset}px) scale(0.95)`;
                     column.style.transformOrigin = 'top left';
                 } else {
@@ -2421,7 +2447,7 @@
                 
                 // Auto-center on first year creation
                 if(isFirstYear) {
-                    setTimeout(() => centerAndZoomNodes(), 100);
+                    setTimeout(() => resetGraphView(), 100);
                 }
             }
             closeYearModal();
@@ -2666,6 +2692,9 @@
             
             document.getElementById('character-editor-overlay').style.display = 'none';
             
+            // Update character timeline node to reflect changes
+            renderSceneCharacters();
+            
             // If we were viewing a character detail, go back to it
             if (selectedCharacterId) {
                 showCharacterDetail(selectedCharacterId);
@@ -2720,6 +2749,16 @@
         function handleCharacterImageUpload(input) {
             const file = input.files[0];
             if (!file) return;
+            
+            // Warn about large files
+            const fileSizeMB = file.size / 1024 / 1024;
+            if (fileSizeMB > 0.5) {
+                const proceed = confirm(`⚠️ Large Image (${fileSizeMB.toFixed(1)}MB)\n\nLarge images may exceed browser storage limits.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 500KB\n\nContinue anyway?`);
+                if (!proceed) {
+                    input.value = ''; // Clear the file input
+                    return;
+                }
+            }
             
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -2995,30 +3034,52 @@
             }
             
             const storageKey = `alphaline_universe_${universeId}`;
-            localStorage.setItem(storageKey, JSON.stringify({
-                years: currentUniverse.years,
-                plots: plotsByYear,
-                characters: characters
-            }));
             
-            // Update last edited timestamp in universes list
-            const universes = JSON.parse(localStorage.getItem('alphaline_universes') || '[]');
-            const universeEntry = universes.find(u => u.id === parseInt(universeId));
-            if (universeEntry) {
-                const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
-                universeEntry.lastEdited = date;
-                localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+            try {
+                const dataToSave = JSON.stringify({
+                    years: currentUniverse.years,
+                    plots: plotsByYear,
+                    characters: characters
+                });
+                
+                localStorage.setItem(storageKey, dataToSave);
+                
+                // Update last edited timestamp in universes list
+                const universes = JSON.parse(localStorage.getItem('alphaline_universes') || '[]');
+                const universeEntry = universes.find(u => u.id === parseInt(universeId));
+                if (universeEntry) {
+                    const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
+                    universeEntry.lastEdited = date;
+                    localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+                }
+                
+                document.getElementById('save-status').innerText = 'CHANGES SYNCED';
+                
+                // Brief flash to show save
+                setTimeout(() => {
+                    document.getElementById('save-status').style.color = '#4a4';
+                }, 100);
+                setTimeout(() => {
+                    document.getElementById('save-status').style.color = '#444';
+                }, 2000);
+            } catch (e) {
+                console.error('Failed to save data:', e);
+                
+                // Check if it's a quota exceeded error
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    document.getElementById('save-status').innerText = 'SAVE FAILED - IMAGES TOO LARGE';
+                    document.getElementById('save-status').style.color = '#f44';
+                    
+                    alert('⚠️ Storage Limit Exceeded\n\nYour images are too large for browser storage.\n\nTips to reduce size:\n• Use smaller/compressed images\n• Use external image hosting (Imgur, etc.)\n• Paste image URLs instead of uploading files');
+                } else {
+                    document.getElementById('save-status').innerText = 'SAVE FAILED';
+                    document.getElementById('save-status').style.color = '#f44';
+                }
+                
+                setTimeout(() => {
+                    document.getElementById('save-status').style.color = '#444';
+                }, 5000);
             }
-            
-            document.getElementById('save-status').innerText = 'CHANGES SYNCED';
-            
-            // Brief flash to show save
-            setTimeout(() => {
-                document.getElementById('save-status').style.color = '#4a4';
-            }, 100);
-            setTimeout(() => {
-                document.getElementById('save-status').style.color = '#444';
-            }, 800);
         }
 
         function loadData() {
