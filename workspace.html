@@ -482,36 +482,41 @@
         }
         .tool-delete:hover { color: var(--danger); background: rgba(255, 68, 68, 0.1); }
 
-        /* Event Reorder Arrows */
+        /* Event reorder arrows */
         .event-reorder {
             position: absolute;
-            left: 0;
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
             opacity: 0;
             transition: opacity 0.2s;
+            z-index: 10;
         }
         .event-node:hover .event-reorder { opacity: 1; }
         .reorder-arrow {
             width: 0;
             height: 0;
-            border-left: 8px solid var(--text-dim);
-            border-top: 6px solid transparent;
-            border-bottom: 6px solid transparent;
             cursor: pointer;
             transition: 0.2s;
         }
         .reorder-arrow.up {
-            transform: rotate(90deg);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 8px solid var(--text-dim);
+        }
+        .reorder-arrow.up:hover {
+            border-bottom-color: var(--text-primary);
         }
         .reorder-arrow.down {
-            transform: rotate(-90deg);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid var(--text-dim);
         }
-        .reorder-arrow:hover {
-            border-left-color: var(--text-primary);
+        .reorder-arrow.down:hover {
+            border-top-color: var(--text-primary);
         }
 
         /* Event reorder arrows */
@@ -1000,30 +1005,30 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
-            padding: 40px;
+            gap: 0;
+            padding: 0;
             max-width: 90vw;
             max-height: 90vh;
             pointer-events: all;
         }
 
         .character-journal {
-            width: 800px;
-            max-height: 70vh;
+            width: 900px;
+            max-height: 80vh;
             background: rgba(12, 12, 12, 0.95);
             border: 1px solid #333;
             border-radius: 15px;
-            padding: 30px;
-            overflow-y: auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .journal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            padding: 20px 30px;
             border-bottom: 1px solid #222;
-            padding-bottom: 15px;
         }
 
         .journal-header h2 {
@@ -1044,6 +1049,89 @@
 
         .close-journal:hover {
             color: #fff;
+        }
+
+        /* Character Detail View - at top */
+        .character-detail-section {
+            padding: 40px;
+            border-bottom: 2px solid #222;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            background: rgba(20, 20, 20, 0.5);
+        }
+
+        .character-detail-section.active {
+            display: flex;
+        }
+
+        .detail-avatar {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: #111;
+            border: 4px solid #333;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .detail-name {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .detail-buttons {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .detail-btn {
+            flex: 1;
+            padding: 14px 20px;
+            background: var(--node-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .detail-btn:hover:not(.added) {
+            background: var(--border);
+        }
+
+        .detail-btn.added {
+            background: rgba(50, 100, 50, 0.3);
+            color: #4a4;
+            cursor: default;
+            border-color: #4a4;
+        }
+
+        .detail-btn.delete {
+            background: rgba(100, 30, 30, 0.3);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .detail-btn.delete:hover {
+            background: rgba(100, 30, 30, 0.5);
+        }
+
+        /* Character List - at bottom */
+        .character-list-section {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .character-list {
@@ -1114,92 +1202,6 @@
             color: #fff;
             background: rgba(30, 30, 30, 0.9);
             transform: scale(1.05);
-        }
-
-        /* Character Detail View */
-        .character-detail-view {
-            width: 500px;
-            background: rgba(12, 12, 12, 0.98);
-            border: 1px solid #333;
-            border-radius: 15px;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .detail-avatar {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: #111;
-            border: 4px solid #333;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .detail-name {
-            font-size: 1.5rem;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-
-        .detail-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .detail-btn {
-            padding: 14px 24px;
-            background: var(--node-bg);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: 0.2s;
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-        }
-
-        .detail-btn:hover:not(.added) {
-            background: var(--border);
-        }
-
-        .detail-btn.added {
-            background: rgba(50, 100, 50, 0.3);
-            color: #4a4;
-            cursor: default;
-            border-color: #4a4;
-        }
-
-        .detail-btn.delete {
-            background: rgba(100, 30, 30, 0.3);
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-
-        .detail-btn.delete:hover {
-            background: rgba(100, 30, 30, 0.5);
-        }
-
-        .detail-back {
-            font-size: 0.7rem;
-            color: #666;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.2s;
-        }
-
-        .detail-back:hover {
-            color: #fff;
         }
 
         /* Scene Characters in Node */
@@ -1562,28 +1564,29 @@
 
     <div id="character-overlay" class="modal-overlay" style="display:none;" onclick="closeCharacterJournal()">
         <div class="character-modal-content" onclick="event.stopPropagation()">
-            <!-- Character Journal -->
             <div id="character-journal" class="character-journal">
                 <div class="journal-header">
                     <h2>CHARACTER JOURNAL</h2>
                     <div class="close-journal" onclick="closeCharacterJournal()">×</div>
                 </div>
-                
-                <div class="character-list" id="character-list">
-                    <!-- Character profiles will be rendered here -->
-                </div>
-            </div>
 
-            <!-- Character Detail View -->
-            <div id="character-detail-view" class="character-detail-view" style="display:none;">
-                <div id="detail-avatar" class="detail-avatar"></div>
-                <div id="detail-name" class="detail-name"></div>
-                <div class="detail-buttons">
-                    <button id="add-to-episode-btn" class="detail-btn" onclick="addCharacterFromDetail()">Add Character to Episode</button>
-                    <button class="detail-btn" onclick="editCharacterFromDetail()">Edit Character</button>
-                    <button class="detail-btn delete" onclick="deleteCharacterFromDetail()">Delete Character</button>
+                <!-- Character Detail Section - Shows at top when character selected -->
+                <div id="character-detail-section" class="character-detail-section">
+                    <div id="detail-avatar" class="detail-avatar"></div>
+                    <div id="detail-name" class="detail-name"></div>
+                    <div class="detail-buttons">
+                        <button id="add-to-episode-btn" class="detail-btn" onclick="addCharacterFromDetail()">Add Character to Episode</button>
+                        <button class="detail-btn" onclick="editCharacterFromDetail()">Edit Character</button>
+                        <button class="detail-btn delete" onclick="deleteCharacterFromDetail()">Delete Character</button>
+                    </div>
                 </div>
-                <div class="detail-back" onclick="closeCharacterDetail()">← Back to Journal</div>
+
+                <!-- Character List Section - Always visible at bottom -->
+                <div class="character-list-section">
+                    <div class="character-list" id="character-list">
+                        <!-- Character profiles will be rendered here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2427,6 +2430,7 @@
 
         function closeCharacterJournal() {
             document.getElementById('character-overlay').style.display = 'none';
+            closeCharacterDetail(); // Also close detail section
         }
 
         function renderCharacterList() {
@@ -2565,9 +2569,8 @@
             const char = characters.find(c => c.id === charId);
             if (!char) return;
 
-            // Hide journal, show detail
-            document.getElementById('character-journal').style.display = 'none';
-            document.getElementById('character-detail-view').style.display = 'flex';
+            // Show detail section at top
+            document.getElementById('character-detail-section').classList.add('active');
 
             // Set avatar
             const avatar = document.getElementById('detail-avatar');
@@ -2586,8 +2589,7 @@
         }
 
         function closeCharacterDetail() {
-            document.getElementById('character-detail-view').style.display = 'none';
-            document.getElementById('character-journal').style.display = 'block';
+            document.getElementById('character-detail-section').classList.remove('active');
             selectedCharacterId = null;
         }
 
