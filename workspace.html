@@ -1014,62 +1014,75 @@
             pointer-events: none;
         }
 
-        /* Character Detail Popup - top half of screen */
+        /* Character Detail Popup - compact, horizontal layout */
         .character-detail-popup {
             position: absolute;
-            top: 0;
+            top: 10vh;
             left: 50%;
             transform: translateX(-50%);
             width: 900px;
-            height: 50vh;
+            max-height: 30vh;
             background: rgba(12, 12, 12, 0.98);
             border: 1px solid #333;
             border-radius: 15px;
             display: none;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            justify-content: center;
-            gap: 25px;
-            padding: 40px;
+            gap: 30px;
+            padding: 30px 40px;
             pointer-events: all;
             box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            opacity: 1;
+            transition: opacity 1.5s ease-out;
         }
 
         .character-detail-popup.active {
             display: flex;
         }
 
+        .character-detail-popup.fading {
+            opacity: 0;
+        }
+
+        .detail-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
         .detail-avatar {
-            width: 180px;
-            height: 180px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: #111;
             border: 4px solid #333;
             background-size: cover;
             background-position: center;
+            flex-shrink: 0;
         }
 
         .detail-name {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 400;
             letter-spacing: 2px;
-            text-align: center;
+            text-align: left;
+            min-width: 150px;
         }
 
         .detail-buttons {
             display: flex;
-            gap: 15px;
-            width: 100%;
-            max-width: 600px;
+            gap: 12px;
+            flex: 1;
         }
 
         .detail-btn {
             flex: 1;
-            padding: 16px 20px;
+            padding: 14px 16px;
             background: var(--node-bg);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             cursor: pointer;
@@ -1100,10 +1113,10 @@
             background: rgba(100, 30, 30, 0.5);
         }
 
-        /* Character Journal - bottom half of screen */
+        /* Character Journal - compact bottom panel */
         .character-journal {
             width: 900px;
-            height: 50vh;
+            max-height: 45vh;
             background: rgba(12, 12, 12, 0.95);
             border: 1px solid #333;
             border-radius: 15px 15px 0 0;
@@ -1117,37 +1130,25 @@
 
         .journal-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 20px 30px;
+            padding: 15px 30px;
             border-bottom: 1px solid #222;
             flex-shrink: 0;
         }
 
         .journal-header h2 {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 300;
             letter-spacing: 3px;
             margin: 0;
             text-transform: uppercase;
         }
 
-        .close-journal {
-            font-size: 2rem;
-            color: #666;
-            cursor: pointer;
-            transition: 0.2s;
-            line-height: 1;
-        }
-
-        .close-journal:hover {
-            color: #fff;
-        }
-
         /* Character List Section */
         .character-list-section {
             flex: 1;
-            padding: 30px;
+            padding: 25px 30px 20px 30px;
             overflow-y: auto;
         }
 
@@ -1219,6 +1220,34 @@
             color: #fff;
             background: rgba(30, 30, 30, 0.9);
             transform: scale(1.05);
+        }
+
+        /* Dismiss button at bottom */
+        .journal-footer {
+            padding: 15px 30px;
+            border-top: 1px solid #222;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dismiss-journal-btn {
+            padding: 12px 30px;
+            background: var(--node-bg);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .dismiss-journal-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
         }
 
         /* Scene Characters in Node */
@@ -1581,10 +1610,12 @@
 
     <div id="character-overlay" class="modal-overlay" style="display:none;">
         <div class="character-modal-content" onclick="event.stopPropagation()">
-            <!-- Character Detail Popup - top half of screen -->
+            <!-- Character Detail Popup - compact horizontal layout -->
             <div id="character-detail-popup" class="character-detail-popup">
-                <div id="detail-avatar" class="detail-avatar"></div>
-                <div id="detail-name" class="detail-name"></div>
+                <div class="detail-left">
+                    <div id="detail-avatar" class="detail-avatar"></div>
+                    <div id="detail-name" class="detail-name"></div>
+                </div>
                 <div class="detail-buttons">
                     <button id="add-to-episode-btn" class="detail-btn" onclick="addCharacterFromDetail()">Add Character to Episode</button>
                     <button class="detail-btn" onclick="editCharacterFromDetail()">Edit Character</button>
@@ -1592,17 +1623,20 @@
                 </div>
             </div>
 
-            <!-- Character Journal - bottom half of screen -->
+            <!-- Character Journal - bottom panel -->
             <div id="character-journal" class="character-journal">
                 <div class="journal-header">
                     <h2>CHARACTER JOURNAL</h2>
-                    <div class="close-journal" onclick="closeCharacterJournal()">×</div>
                 </div>
 
                 <div class="character-list-section">
                     <div class="character-list" id="character-list">
                         <!-- Character profiles will be rendered here -->
                     </div>
+                </div>
+
+                <div class="journal-footer">
+                    <button class="dismiss-journal-btn" onclick="closeCharacterJournal()">Dismiss Character Journal</button>
                 </div>
             </div>
         </div>
@@ -2628,7 +2662,8 @@
 
             const detailPopup = document.getElementById('character-detail-popup');
             
-            // Show detail popup at top
+            // Show detail popup and remove any fading state
+            detailPopup.classList.remove('fading');
             detailPopup.classList.add('active');
 
             // Set avatar
@@ -2649,7 +2684,7 @@
 
         function closeCharacterDetail() {
             const detailPopup = document.getElementById('character-detail-popup');
-            detailPopup.classList.remove('active');
+            detailPopup.classList.remove('active', 'fading');
             selectedCharacterId = null;
         }
 
@@ -2681,8 +2716,13 @@
             addCharacterToScene(selectedCharacterId);
             updateAddToEpisodeButton();
             
-            // Close detail popup after adding
-            closeCharacterDetail();
+            // Fade out over 1.5 seconds, then close
+            const detailPopup = document.getElementById('character-detail-popup');
+            detailPopup.classList.add('fading');
+            
+            setTimeout(() => {
+                closeCharacterDetail();
+            }, 1500);
         }
 
         function editCharacterFromDetail() {
