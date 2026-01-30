@@ -48,9 +48,9 @@
             --ui-bg: #fff;
             --text-primary: #fff;
             --text-dim: #999;
-            --border: #ddd;
+            --border: #333;
             --grid-line: rgba(0, 0, 0, 0.06);
-            --node-bg: rgba(15, 15, 15, 0.85);
+            --node-bg: rgba(15, 15, 15, 0.75);
             --node-border: rgba(255, 255, 255, 0.15);
             --panel-bg: rgba(12, 12, 12, 0.85);
             --hud-bg: #0a0a0a;
@@ -69,10 +69,10 @@
             --grid-line: rgba(255, 255, 255, 0.08);
             --node-bg: rgba(255, 255, 255, 0.95);
             --node-border: rgba(0, 0, 0, 0.1);
-            --panel-bg: rgba(255, 255, 255, 0.95);
-            --hud-bg: #fff;
-            --hud-text: #1a1a1a;
-            --hud-border: #ddd;
+            --panel-bg: rgba(12, 12, 12, 0.85);
+            --hud-bg: #0a0a0a;
+            --hud-text: #fff;
+            --hud-border: #222;
             --pipe-color: rgba(200, 200, 200, 0.4);
         }
 
@@ -624,6 +624,20 @@
         .tm-btn:hover { 
             color: var(--hud-text);
             border-color: var(--text-dim);
+        }
+        
+        /* Modal buttons always dark regardless of theme */
+        .modal-content .tm-btn,
+        #lightbox .tm-btn {
+            background: #0a0a0a;
+            border-color: #222;
+            color: #999;
+        }
+        
+        .modal-content .tm-btn:hover,
+        #lightbox .tm-btn:hover {
+            color: #fff;
+            border-color: #999;
         }
         
         .add-circle {
@@ -1955,8 +1969,22 @@
         
         plane.onwheel = (e) => {
             if (e.target.closest('#timeline-hud')) return;
+            e.preventDefault();
+            
             const delta = e.deltaY < 0 ? 1.1 : 0.9;
+            const oldZoom = gridZoom;
             gridZoom = Math.min(Math.max(0.1, gridZoom * delta), 3);
+            
+            // Calculate mouse position relative to plane center
+            const rect = plane.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - rect.width / 2;
+            const mouseY = e.clientY - rect.top - rect.height / 2;
+            
+            // Adjust pan to zoom toward mouse position
+            const zoomRatio = gridZoom / oldZoom - 1;
+            panX -= (mouseX - panX) * zoomRatio;
+            panY -= (mouseY - panY) * zoomRatio;
+            
             updateGrid();
         };
 
