@@ -482,6 +482,72 @@
         }
         .tool-delete:hover { color: var(--danger); background: rgba(255, 68, 68, 0.1); }
 
+        /* Event Reorder Arrows */
+        .event-reorder {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .event-node:hover .event-reorder { opacity: 1; }
+        .reorder-arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid var(--text-dim);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .reorder-arrow.up {
+            transform: rotate(90deg);
+        }
+        .reorder-arrow.down {
+            transform: rotate(-90deg);
+        }
+        .reorder-arrow:hover {
+            border-left-color: var(--text-primary);
+        }
+
+        /* Event reorder arrows */
+        .event-reorder {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .event-node:hover .event-reorder { opacity: 1; }
+        .reorder-arrow {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .arrow-up {
+            border-bottom: 8px solid var(--text-dim);
+        }
+        .arrow-up:hover {
+            border-bottom-color: var(--text-primary);
+        }
+        .arrow-down {
+            border-top: 8px solid var(--text-dim);
+        }
+        .arrow-down:hover {
+            border-top-color: var(--text-primary);
+        }
+
         /* Drag & Drop Styles */
         .draggable { cursor: grab; }
         .draggable:active { cursor: grabbing; }
@@ -589,141 +655,9 @@
             pointer-events: all;
         }
 
-        .character-zones-row {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .character-trash-zone {
-            width: 200px;
-            height: 120px;
-            background: rgba(20, 20, 20, 0.9);
-            border-radius: 12px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .trash-zone-border {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 2px dashed #444;
-            border-radius: 12px;
-        }
-
-        .trash-zone-icon {
-            font-size: 2rem;
-            color: #444;
-            z-index: 1;
-            transition: 0.3s;
-        }
-
-        .trash-zone-text {
-            font-size: 0.65rem;
-            color: #444;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            z-index: 1;
-            transition: 0.3s;
-        }
-
-        .character-trash-zone.drag-over {
-            background: rgba(40, 20, 20, 0.95);
-        }
-
-        .character-trash-zone.drag-over .trash-zone-border {
-            border-color: var(--danger);
-            border-style: solid;
-        }
-
-        .character-trash-zone.drag-over .trash-zone-icon {
-            color: var(--danger);
-            transform: scale(1.2);
-        }
-
-        .character-trash-zone.drag-over .trash-zone-text {
-            color: var(--danger);
-        }
-
-        .character-drag-zone {
-            width: 600px;
-            height: 120px;
-            background: rgba(20, 20, 20, 0.9);
-            border-radius: 12px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .drag-zone-border {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 2px dashed #444;
-            border-radius: 12px;
-            animation: dash 20s linear infinite;
-        }
-
-        @keyframes dash {
-            to { stroke-dashoffset: -100; }
-        }
-
-        .drag-zone-text {
-            font-size: 0.9rem;
-            color: #666;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            z-index: 1;
-        }
-
-        .character-drag-zone.drag-over {
-            background: rgba(40, 40, 40, 0.95);
-            border-color: #fff;
-        }
-
-        .character-drag-zone.drag-over .drag-zone-border {
-            border-color: #fff;
-            border-style: solid;
-        }
-
-        .character-drag-zone.drag-over .drag-zone-text {
-            color: #fff;
-        }
-
-        .drag-feedback {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.85rem;
-            color: #4a4;
-            letter-spacing: 1px;
-            z-index: 2;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-            text-align: center;
-        }
-
-        .drag-feedback.show {
-            opacity: 1;
-        }
-
         .character-journal {
             width: 800px;
-            max-height: 60vh;
+            max-height: 70vh;
             background: rgba(12, 12, 12, 0.95);
             border: 1px solid #333;
             border-radius: 15px;
@@ -773,12 +707,8 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            cursor: grab;
+            cursor: pointer;
             transition: transform 0.2s;
-        }
-
-        .character-profile:active {
-            cursor: grabbing;
         }
 
         .character-profile:hover {
@@ -829,6 +759,91 @@
             color: #fff;
             background: rgba(30, 30, 30, 0.9);
             transform: scale(1.05);
+        }
+
+        /* Character detail view */
+        .character-detail-view {
+            width: 500px;
+            background: rgba(12, 12, 12, 0.98);
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .detail-avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #111;
+            border: 4px solid #333;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .detail-name {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .detail-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .detail-btn {
+            padding: 14px 24px;
+            background: var(--node-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .detail-btn:hover {
+            background: var(--border);
+        }
+
+        .detail-btn.added {
+            background: rgba(50, 100, 50, 0.3);
+            color: #4a4;
+            cursor: default;
+            border-color: #4a4;
+        }
+
+        .detail-btn.delete {
+            background: rgba(100, 30, 30, 0.3);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .detail-btn.delete:hover {
+            background: rgba(100, 30, 30, 0.5);
+        }
+
+        .detail-back {
+            font-size: 0.7rem;
+            color: #666;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .detail-back:hover {
+            color: #fff;
         }
 
         /* --- CHARACTER PROFILE EDITOR --- */
@@ -980,36 +995,210 @@
             border: 1px solid #333;
         }
 
-        /* Enhanced Character Profile with EDIT overlay */
+        /* --- CHARACTER JOURNAL MODAL --- */
+        .character-modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 40px;
+            max-width: 90vw;
+            max-height: 90vh;
+            pointer-events: all;
+        }
+
+        .character-journal {
+            width: 800px;
+            max-height: 70vh;
+            background: rgba(12, 12, 12, 0.95);
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .journal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+        }
+
+        .journal-header h2 {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .close-journal {
+            font-size: 2rem;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .close-journal:hover {
+            color: #fff;
+        }
+
+        .character-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
         .character-profile {
+            width: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
             position: relative;
         }
 
-        .character-edit-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            background: rgba(0, 0, 0, 0.85);
-            border-radius: 0 0 50% 50%;
+        .character-profile:hover {
+            transform: scale(1.05);
+        }
+
+        .character-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #111;
+            border: 2px solid #333;
+            object-fit: cover;
+            transition: 0.2s;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .character-profile:hover .character-avatar {
+            border-color: #666;
+        }
+
+        .character-name {
+            font-size: 0.7rem;
+            color: #ddd;
+            text-align: center;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .add-character-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(20, 20, 20, 0.8);
+            border: 2px dashed #444;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            transition: opacity 0.2s;
+            font-size: 2rem;
+            color: #444;
             cursor: pointer;
-            font-size: 0.6rem;
-            color: #888;
+            transition: 0.3s;
+        }
+
+        .add-character-btn:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(30, 30, 30, 0.9);
+            transform: scale(1.05);
+        }
+
+        /* Character Detail View */
+        .character-detail-view {
+            width: 500px;
+            background: rgba(12, 12, 12, 0.98);
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .detail-avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #111;
+            border: 4px solid #333;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .detail-name {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .detail-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .detail-btn {
+            padding: 14px 24px;
+            background: var(--node-bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
             letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
             font-weight: 600;
         }
 
-        .character-profile:hover .character-edit-overlay {
-            opacity: 1;
+        .detail-btn:hover:not(.added) {
+            background: var(--border);
         }
 
-        .character-edit-overlay:hover {
+        .detail-btn.added {
+            background: rgba(50, 100, 50, 0.3);
+            color: #4a4;
+            cursor: default;
+            border-color: #4a4;
+        }
+
+        .detail-btn.delete {
+            background: rgba(100, 30, 30, 0.3);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .detail-btn.delete:hover {
+            background: rgba(100, 30, 30, 0.5);
+        }
+
+        .detail-back {
+            font-size: 0.7rem;
+            color: #666;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .detail-back:hover {
             color: #fff;
         }
 
@@ -1373,20 +1562,7 @@
 
     <div id="character-overlay" class="modal-overlay" style="display:none;" onclick="closeCharacterJournal()">
         <div class="character-modal-content" onclick="event.stopPropagation()">
-            <div class="character-zones-row">
-                <div id="character-trash-zone" class="character-trash-zone">
-                    <div class="trash-zone-border"></div>
-                    <div class="trash-zone-icon">🗑</div>
-                    <div class="trash-zone-text">Drop here to delete</div>
-                </div>
-
-                <div id="character-drag-zone" class="character-drag-zone">
-                    <div class="drag-zone-border"></div>
-                    <div class="drag-zone-text">Drag Character Profile here to add them to the Scene</div>
-                    <div id="drag-feedback" class="drag-feedback"></div>
-                </div>
-            </div>
-
+            <!-- Character Journal -->
             <div id="character-journal" class="character-journal">
                 <div class="journal-header">
                     <h2>CHARACTER JOURNAL</h2>
@@ -1394,11 +1570,25 @@
                 </div>
                 
                 <div class="character-list" id="character-list">
-                    </div>
+                    <!-- Character profiles will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Character Detail View -->
+            <div id="character-detail-view" class="character-detail-view" style="display:none;">
+                <div id="detail-avatar" class="detail-avatar"></div>
+                <div id="detail-name" class="detail-name"></div>
+                <div class="detail-buttons">
+                    <button id="add-to-episode-btn" class="detail-btn" onclick="addCharacterFromDetail()">Add Character to Episode</button>
+                    <button class="detail-btn" onclick="editCharacterFromDetail()">Edit Character</button>
+                    <button class="detail-btn delete" onclick="deleteCharacterFromDetail()">Delete Character</button>
+                </div>
+                <div class="detail-back" onclick="closeCharacterDetail()">← Back to Journal</div>
             </div>
         </div>
     </div>
 
+    <!-- Character Profile Editor -->
     <div id="character-editor-overlay" class="modal-overlay" style="display:none; z-index:4000;">
         <div class="character-editor-panel" onclick="event.stopPropagation()">
             <div class="editor-header">
@@ -1457,6 +1647,7 @@
 
     <input type="file" id="char-img-upload" hidden accept="image/*" onchange="handleCharacterImageUpload(this)">
 
+    <!-- Character Info Panel (View Only) -->
     <div id="character-info-overlay" class="modal-overlay" style="display:none; z-index:4500;" onclick="closeCharacterInfo()">
         <div class="character-info-panel" onclick="event.stopPropagation()">
             <div class="info-header">
@@ -1547,6 +1738,7 @@
         </div>
     </div>
 
+    <!-- Settings Panel -->
     <div id="settings-overlay" class="modal-overlay" style="display:none; z-index:3500;">
         <div class="settings-panel" onclick="event.stopPropagation()">
             <div class="settings-header">
@@ -1778,6 +1970,10 @@
                     evNode.dataset.col = colName;
                     
                     evNode.innerHTML = `
+                        <div class="event-reorder">
+                            <div class="reorder-arrow up" onclick="reorderEventUp(${pIdx}, ${eIdx}, '${colName}'); event.stopPropagation();"></div>
+                            <div class="reorder-arrow down" onclick="reorderEventDown(${pIdx}, ${eIdx}, '${colName}'); event.stopPropagation();"></div>
+                        </div>
                         <div class="event-text-container">
                             <div class="event-tools">
                                 <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx}, '${colName}')">↔</div>
@@ -1840,6 +2036,44 @@
                 renderPlotStack();
                 saveData();
             }
+        }
+
+        function reorderEventUp(pIdx, eIdx, col) {
+            const events = plotsByYear[selectedYear][col][pIdx].events;
+            const event = events[eIdx];
+            
+            // Remove from current position
+            events.splice(eIdx, 1);
+            
+            // If at top, move to bottom
+            if (eIdx === 0) {
+                events.push(event);
+            } else {
+                // Move up one position
+                events.splice(eIdx - 1, 0, event);
+            }
+            
+            renderPlotStack();
+            saveData();
+        }
+
+        function reorderEventDown(pIdx, eIdx, col) {
+            const events = plotsByYear[selectedYear][col][pIdx].events;
+            const event = events[eIdx];
+            
+            // Remove from current position
+            events.splice(eIdx, 1);
+            
+            // If at bottom, move to top
+            if (eIdx === events.length) {
+                events.unshift(event);
+            } else {
+                // Move down one position
+                events.splice(eIdx + 1, 0, event);
+            }
+            
+            renderPlotStack();
+            saveData();
         }
 
         // --- LIGHTBOX ---
@@ -2205,20 +2439,17 @@
                 profile.className = 'character-profile';
                 profile.dataset.charId = char.id;
                 
-                const avatarStyle = char.image ? `background-image: url('${char.image}'); background-size: cover; background-position: center;` : '';
+                const avatarStyle = char.image ? `background-image: url('${char.image}');` : '';
                 const avatarBorder = char.color ? `border-color: ${char.color};` : '';
                 
                 profile.innerHTML = `
                     <div class="character-avatar" style="${avatarStyle} ${avatarBorder}"></div>
                     <div class="character-name">${char.name}</div>
-                    <div class="character-edit-overlay" onclick="openCharacterEditor(${char.id}); event.stopPropagation();">EDIT</div>
                 `;
 
-                // Make draggable on mousedown (not using HTML5 drag, using custom)
-                const avatar = profile.querySelector('.character-avatar');
-                avatar.addEventListener('mousedown', (e) => {
-                    if (e.target.closest('.character-edit-overlay')) return; // Don't drag if clicking EDIT
-                    startCharacterDrag(e, char);
+                // Click to show detail view
+                profile.addEventListener('click', () => {
+                    showCharacterDetail(char.id);
                 });
 
                 list.appendChild(profile);
@@ -2270,8 +2501,14 @@
 
         function closeCharacterEditor() {
             document.getElementById('character-editor-overlay').style.display = 'none';
-            editingCharacterId = null;
-            renderCharacterList();
+            
+            // If we were viewing a character detail, go back to it
+            if (selectedCharacterId) {
+                showCharacterDetail(selectedCharacterId);
+            } else {
+                editingCharacterId = null;
+                renderCharacterList();
+            }
         }
 
         function autoSaveCharacter() {
@@ -2320,137 +2557,84 @@
             if (file) reader.readAsDataURL(file);
         }
 
-        // --- DRAG CHARACTER TO SCENE ---
-        let draggedCharacter = null;
-        let dragClone = null;
-        let isDragging = false;
-        let rafId = null;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
+        // --- CHARACTER DETAIL VIEW ---
+        let selectedCharacterId = null;
 
-        function startCharacterDrag(e, char) {
-            e.preventDefault();
-            draggedCharacter = char;
-            isDragging = true;
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
+        function showCharacterDetail(charId) {
+            selectedCharacterId = charId;
+            const char = characters.find(c => c.id === charId);
+            if (!char) return;
 
-            // Create visual clone - styled circle with name
-            dragClone = document.createElement('div');
-            dragClone.style.cssText = `
-                position: fixed;
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 5000;
-                opacity: 0.95;
-                background: #000;
-                border: 4px solid ${char.color};
-                will-change: transform;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-                transform: translate(${e.clientX - 60}px, ${e.clientY - 60}px);
-            `;
-            
-            // Add character name
-            dragClone.innerHTML = `<div style="color: #fff; font-size: 0.75rem; font-weight: 600; text-align: center; padding: 10px; letter-spacing: 0.5px;">${char.name}</div>`;
+            // Hide journal, show detail
+            document.getElementById('character-journal').style.display = 'none';
+            document.getElementById('character-detail-view').style.display = 'flex';
 
-            document.body.appendChild(dragClone);
-
-            document.addEventListener('mousemove', onCharacterDragMove);
-            document.addEventListener('mouseup', onCharacterDragEnd);
-        }
-
-        function updateDragVisuals() {
-            if (!isDragging || !dragClone) return;
-            
-            // Update clone position
-            dragClone.style.transform = `translate(${lastMouseX - 60}px, ${lastMouseY - 60}px)`;
-            
-            // Check zones
-            const dragZone = document.getElementById('character-drag-zone');
-            const trashZone = document.getElementById('character-trash-zone');
-            
-            if (dragZone && trashZone) {
-                const dragRect = dragZone.getBoundingClientRect();
-                const trashRect = trashZone.getBoundingClientRect();
-                
-                const isOverDrag = lastMouseX >= dragRect.left && lastMouseX <= dragRect.right && 
-                                   lastMouseY >= dragRect.top && lastMouseY <= dragRect.bottom;
-                const isOverTrash = lastMouseX >= trashRect.left && lastMouseX <= trashRect.right && 
-                                  lastMouseY >= trashRect.top && lastMouseY <= trashRect.bottom;
-                
-                dragZone.classList.toggle('drag-over', isOverDrag);
-                trashZone.classList.toggle('drag-over', isOverTrash);
+            // Set avatar
+            const avatar = document.getElementById('detail-avatar');
+            if (char.image) {
+                avatar.style.backgroundImage = `url('${char.image}')`;
+            } else {
+                avatar.style.backgroundImage = 'none';
             }
-            
-            rafId = null;
+            avatar.style.borderColor = char.color || '#333';
+
+            // Set name
+            document.getElementById('detail-name').innerText = char.name;
+
+            // Update button state
+            updateAddToEpisodeButton();
         }
 
-        function onCharacterDragMove(e) {
-            if (!isDragging) return;
-            
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-            
-            // Use RAF to throttle at 60fps
-            if (!rafId) {
-                rafId = requestAnimationFrame(updateDragVisuals);
+        function closeCharacterDetail() {
+            document.getElementById('character-detail-view').style.display = 'none';
+            document.getElementById('character-journal').style.display = 'block';
+            selectedCharacterId = null;
+        }
+
+        function updateAddToEpisodeButton() {
+            const btn = document.getElementById('add-to-episode-btn');
+            if (!selectedYear || !plotsByYear[selectedYear]) {
+                btn.disabled = true;
+                btn.innerText = 'No Episode Selected';
+                return;
+            }
+
+            const scene = plotsByYear[selectedYear];
+            const isAdded = scene.sceneCharacters && scene.sceneCharacters.includes(selectedCharacterId);
+
+            if (isAdded) {
+                btn.innerText = 'Character Added to Episode';
+                btn.classList.add('added');
+                btn.disabled = true;
+            } else {
+                btn.innerText = 'Add Character to Episode';
+                btn.classList.remove('added');
+                btn.disabled = false;
             }
         }
 
-        function onCharacterDragEnd(e) {
-            document.removeEventListener('mousemove', onCharacterDragMove);
-            document.removeEventListener('mouseup', onCharacterDragEnd);
+        function addCharacterFromDetail() {
+            if (!selectedCharacterId || !selectedYear) return;
             
-            if (rafId) {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
-            
-            isDragging = false;
-
-            const dragZone = document.getElementById('character-drag-zone');
-            const trashZone = document.getElementById('character-trash-zone');
-            
-            // Check if over drag zone (add to scene)
-            const dragRect = dragZone.getBoundingClientRect();
-            const isOverDrag = e.clientX >= dragRect.left && e.clientX <= dragRect.right && e.clientY >= dragRect.top && e.clientY <= dragRect.bottom;
-
-            // Check if over trash zone (delete character)
-            const trashRect = trashZone.getBoundingClientRect();
-            const isOverTrash = e.clientX >= trashRect.left && e.clientX <= trashRect.right && e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
-
-            if (isOverTrash && draggedCharacter) {
-                if (confirm(`Permanently delete ${draggedCharacter.name}?`)) {
-                    deleteCharacter(draggedCharacter.id);
-                }
-            } else if (isOverDrag && draggedCharacter && selectedYear) {
-                addCharacterToScene(draggedCharacter.id);
-                showDragFeedback(`${draggedCharacter.name} was added to the Episode.`);
-            }
-
-            dragZone.classList.remove('drag-over');
-            trashZone.classList.remove('drag-over');
-            
-            if (dragClone) {
-                dragClone.remove();
-                dragClone = null;
-            }
-            draggedCharacter = null;
+            addCharacterToScene(selectedCharacterId);
+            updateAddToEpisodeButton();
         }
 
-        function showDragFeedback(message) {
-            const feedback = document.getElementById('drag-feedback');
-            feedback.textContent = message;
-            feedback.classList.add('show');
+        function editCharacterFromDetail() {
+            if (!selectedCharacterId) return;
+            openCharacterEditor(selectedCharacterId);
+        }
+
+        function deleteCharacterFromDetail() {
+            if (!selectedCharacterId) return;
             
-            setTimeout(() => {
-                feedback.classList.remove('show');
-            }, 2000);
+            const char = characters.find(c => c.id === selectedCharacterId);
+            if (!char) return;
+
+            if (confirm(`Permanently delete ${char.name}?`)) {
+                deleteCharacter(selectedCharacterId);
+                closeCharacterDetail();
+            }
         }
 
         // --- SCENE CHARACTER MANAGEMENT ---
@@ -2578,21 +2762,6 @@
             viewingCharacterId = null;
         }
 
-        // Setup initial drag zone listeners
-        const dragZone = document.getElementById('character-drag-zone');
-        if (dragZone) {
-            // Remove old event listeners and use the custom drag system
-            dragZone.addEventListener('click', () => {
-                // Clicking the drag zone when characters are in scene removes them
-                if (selectedYear && plotsByYear[selectedYear]?.sceneCharacters?.length > 0) {
-                    if (confirm('Remove all characters from this scene?')) {
-                        plotsByYear[selectedYear].sceneCharacters = [];
-                        saveData();
-                        renderSceneCharacters();
-                    }
-                }
-            });
-        }
         
         function handleDeleteYear() {
             if(!selectedYear || !confirm(`Delete Episode ${selectedYear} and all its data?`)) return;
