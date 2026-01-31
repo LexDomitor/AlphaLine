@@ -56,7 +56,7 @@
             --hud-bg: #0a0a0a;
             --hud-text: #fff;
             --hud-border: #222;
-            --pipe-color: rgba(255, 255, 255, 0.2);
+            --pipe-color: rgba(0, 0, 0, 0.3);
         }
 
         /* Light on Dark - Dark background, Light nodes */
@@ -387,7 +387,10 @@
             transition:0.2s;
         }
         .branch-hub.active .hub-arm { width: 450px; }
-        .branch-hub.active .hub-trigger { opacity: 1; }
+        .branch-hub.active .hub-trigger { opacity: 0; transition: opacity 0.3s; }
+        .branch-hub.active:hover .hub-trigger { opacity: 1; }
+        .branch-hub.active .pipe-add { opacity: 0; transition: opacity 0.3s; }
+        .branch-hub.active:hover .pipe-add { opacity: 1; }
         .trigger-left { left: 0; transform: translate(-50%, -50%); }
         .trigger-right { right: 0; transform: translate(50%, -50%); }
 
@@ -461,7 +464,7 @@
 
         .event-image-container {
             flex-shrink: 0; 
-            background: #0a0a0a;
+            background: var(--node-bg);
             border-left: 2px solid var(--border);
             cursor: pointer; 
             overflow: hidden; 
@@ -476,6 +479,39 @@
             min-height: 213px;
             max-height: 213px;
         }
+
+        .event-resize-handle {
+            width: 20px;
+            height: 100%;
+            cursor: ew-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: transparent;
+            z-index: 10;
+            transition: 0.2s;
+        }
+
+        .event-resize-handle:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .resize-triangle {
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid var(--text-dim);
+            opacity: 0.5;
+            transition: 0.2s;
+        }
+
+        .event-resize-handle:hover .resize-triangle {
+            opacity: 1;
+            border-left-color: var(--text-primary);
+        }
+
         .event-node.flipped .event-image-container { border-left: none; border-right: 2px solid var(--border); }
         .event-image-container img { 
             max-width: 100%; 
@@ -1835,13 +1871,13 @@
 
             <div id="branch-hub" class="branch-hub">
                 <div class="hub-arm">
-                    <div class="hub-trigger trigger-left" onclick="centerViewOnColumn('left')" title="Center view on left column">👁</div>
+                    <div class="hub-trigger trigger-left" onclick="centerViewOnColumn('right')" title="Center view on right column">👁</div>
                 </div>
                 <div class="hub-center-line">
                     <div class="pipe-add" onclick="centerViewOnColumn('main')" title="Center view on main column">👁</div>
                 </div>
                 <div class="hub-arm">
-                    <div class="hub-trigger trigger-right" onclick="centerViewOnColumn('right')" title="Center view on right column">👁</div>
+                    <div class="hub-trigger trigger-right" onclick="centerViewOnColumn('left')" title="Center view on left column">👁</div>
                 </div>
             </div>
 
@@ -2076,6 +2112,82 @@
             if (!plotsByYear[y]) plotsByYear[y] = { episodeTitle: "", synopsis: "", main: [], left: [], right: [] };
         }
 
+        // Event resize state
+        let resizeState = {
+            active: false,
+            element: null,
+            startX: 0,
+            startWidth: 0,
+            textContainer: null,
+            imageContainer: null
+        };
+
+        function startEventResize(e, pIdx, eIdx, col) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const eventNode = e.target.closest('.event-node');
+            if (!eventNode) return;
+            
+            resizeState.active = true;
+            resizeState.element = eventNode;
+            resizeState.startX = e.clientX;
+            resizeState.textContainer = eventNode.querySelector('.event-text-container');
+            resizeState.imageContainer = eventNode.querySelector('.event-image-container');
+            resizeState.startWidth = resizeState.imageContainer.offsetWidth;
+            
+            document.addEventListener('mousemove', handleEventResize);
+            document.addEventListener('mouseup', stopEventResize);
+            
+            // Prevent text selection during drag
+            document.body.style.userSelect = 'none';
+        }
+
+        function handleEventResize(e) {
+            if (!resizeState.active) return;
+            
+            let deltaX = e.clientX - resizeState.startX;
+            
+            // Reverse delta if event is flipped (image on right side)
+            const isFlipped = resizeState.element.classList.contains('flipped');
+            if (isFlipped) {
+                deltaX = -deltaX;
+            }
+            
+            const totalWidth = 704; // 420 + 284
+            
+            // Calculate new image width (clamped between 40% and 60% of total)
+            let newImageWidth = resizeState.startWidth + deltaX;
+            const minWidth = totalWidth * 0.4;  // 40% minimum
+            const maxWidth = totalWidth * 0.6;  // 60% maximum
+            newImageWidth = Math.max(minWidth, Math.min(maxWidth, newImageWidth));
+            
+            // Calculate text width
+            const newTextWidth = totalWidth - newImageWidth;
+            
+            // Apply new widths
+            resizeState.textContainer.style.flex = `0 0 ${newTextWidth}px`;
+            resizeState.textContainer.style.minWidth = `${newTextWidth}px`;
+            resizeState.textContainer.style.maxWidth = `${newTextWidth}px`;
+            
+            resizeState.imageContainer.style.width = `${newImageWidth}px`;
+            resizeState.imageContainer.style.minWidth = `${newImageWidth}px`;
+            resizeState.imageContainer.style.maxWidth = `${newImageWidth}px`;
+        }
+
+        function stopEventResize() {
+            if (!resizeState.active) return;
+            
+            resizeState.active = false;
+            resizeState.element = null;
+            
+            document.removeEventListener('mousemove', handleEventResize);
+            document.removeEventListener('mouseup', stopEventResize);
+            
+            // Re-enable text selection
+            document.body.style.userSelect = '';
+        }
+
         function handleSynopsis(el) {
             autoSize(el);
             if(selectedYear) {
@@ -2183,6 +2295,9 @@
                             </div>
                             <textarea class="event-input" maxlength="500" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
                             <div class="char-count">${ev.text.length}/500</div>
+                        </div>
+                        <div class="event-resize-handle" onmousedown="startEventResize(event, ${pIdx}, ${eIdx}, '${colName}')">
+                            <div class="resize-triangle"></div>
                         </div>
                         <div class="event-image-container" onclick="openLightbox(${pIdx}, ${eIdx}, '${colName}')">
                             ${ev.img ? `<img src="${ev.img}">` : '<span class="img-placeholder">ADD MEDIA</span>'}
