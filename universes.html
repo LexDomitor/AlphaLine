@@ -188,18 +188,78 @@
     </div>
 
     <script>
+        // IndexedDB for image storage
+        let imageDB = null;
+        const DB_NAME = 'alphaline_images';
+        const DB_VERSION = 1;
+        const IMAGE_STORE = 'images';
+
+        // Initialize IndexedDB
+        function initImageDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    imageDB = request.result;
+                    resolve(imageDB);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(IMAGE_STORE)) {
+                        db.createObjectStore(IMAGE_STORE);
+                    }
+                };
+            });
+        }
+
+        // Store image in IndexedDB
+        async function storeImage(key, blob) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readwrite');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.put(blob, key);
+                
+                request.onsuccess = () => resolve(key);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Retrieve image from IndexedDB
+        async function getImage(key) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readonly');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.get(key);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeId = null;
         let isCreatingNew = false;
 
-        function renderGrid() {
+        async function renderGrid() {
             const grid = document.getElementById('universe-grid');
-            grid.innerHTML = universes.length === 0 ? '<p style="color:#444; font-size:0.75rem; text-transform:uppercase;">Archive empty.</p>' : 
-            universes.map(u => `
+            
+            if (universes.length === 0) {
+                grid.innerHTML = '<p style="color:#444; font-size:0.75rem; text-transform:uppercase;">Archive empty.</p>';
+                return;
+            }
+            
+            // Render cards with placeholders first
+            grid.innerHTML = universes.map(u => `
                 <div class="universe-card" onclick="launchWorkspace(${u.id})">
                     <div class="edit-trigger" onclick="handleCardEdit(${u.id}, event)">EDIT</div>
-                    <div class="card-bg-overlay" style="background-image: url('${u.image || ''}')"></div>
-                    <img src="${u.image || ''}" class="universe-thumb" style="display:${u.image ? 'block' : 'none'}">
+                    <div class="card-bg-overlay" data-universe-id="${u.id}"></div>
+                    <img src="" class="universe-thumb" data-universe-id="${u.id}" style="display:none">
                     <div class="card-content">
                         ${u.series ? `<div class="card-series">${u.series}</div>` : ''}
                         <div class="card-title">${u.name}</div>
@@ -213,16 +273,64 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Load images asynchronously
+            await loadUniverseImages();
+        }
+
+        async function loadUniverseImages() {
+            for (const universe of universes) {
+                if (!universe.image) continue;
+                
+                let imageUrl = universe.image;
+                
+                // Check if it's an IndexedDB reference
+                if (universe.image.startsWith('indexeddb:')) {
+                    const imageKey = universe.image.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            imageUrl = URL.createObjectURL(blob);
+                        } else {
+                            continue;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load universe image:', error);
+                        continue;
+                    }
+                }
+                
+                // Update thumbnail
+                const thumb = document.querySelector(`.universe-thumb[data-universe-id="${universe.id}"]`);
+                if (thumb) {
+                    thumb.src = imageUrl;
+                    thumb.style.display = 'block';
+                }
+                
+                // Update background overlay
+                const overlay = document.querySelector(`.card-bg-overlay[data-universe-id="${universe.id}"]`);
+                if (overlay) {
+                    overlay.style.backgroundImage = `url('${imageUrl}')`;
+                }
+            }
         }
 
         function launchWorkspace(id) {
+            // Send message to parent to hide panels
             window.parent.postMessage('RETRACT_FRAME', '*');
             
             setTimeout(() => {
-                // FIXED PATH: Points back to root directory
                 window.location.href = `workspace.html?id=${id}`;
             }, 50);
         }
+
+        // Listen for messages from workspace to restore panels
+        window.addEventListener('message', (event) => {
+            if (event.data === 'RETRACT_FRAME') {
+                // Restore any panels that should be shown
+                console.log('Received RETRACT_FRAME message - panels should be restored by parent');
+            }
+        });
 
         function handleOutsideClick(e) {
             const panel = document.getElementById('edit-panel');
@@ -236,7 +344,7 @@
 
         function initiateNew() { isCreatingNew = true; openPanel(null); }
 
-        function openPanel(id = null) {
+        async function openPanel(id = null) {
             activeId = id;
             const panel = document.getElementById('edit-panel');
             const hint = document.getElementById('scroll-hint');
@@ -253,6 +361,9 @@
                 document.getElementById('date-info').innerHTML = `Created: ${u.created}<br>Last Sync: ${u.lastEdited}`;
                 mgmt.style.display = "block";
                 hint.style.display = "block";
+                
+                // Load preview image
+                await updatePreview(u.image);
             } else {
                 document.getElementById('inp-series').value = "";
                 document.getElementById('inp-name').value = "";
@@ -261,20 +372,21 @@
                 document.getElementById('panel-title').innerText = "New Canon";
                 mgmt.style.display = "none";
                 hint.style.display = "none";
+                updatePreview("");
             }
-            updatePreview(document.getElementById('inp-img').value);
+            
             document.getElementById('char-count').innerText = `${document.getElementById('inp-synopsis').value.length} / 150`;
             panel.classList.add('active');
         }
 
-        function autoSave() {
+        async function autoSave() {
             const series = document.getElementById('inp-series').value || "";
             const name = document.getElementById('inp-name').value || "Untitled";
             const syn = document.getElementById('inp-synopsis').value || "";
             const img = document.getElementById('inp-img').value || '';
             const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
             
-            updatePreview(img);
+            await updatePreview(img);
             document.getElementById('char-count').innerText = `${syn.length} / 150`;
             document.getElementById('save-status').innerText = "Saving...";
 
@@ -295,23 +407,59 @@
             setTimeout(() => { document.getElementById('save-status').innerText = "Synced"; }, 500);
         }
 
-        function updatePreview(val) {
+        async function updatePreview(val) {
             const img = document.getElementById('prev-img');
             const placeholder = document.getElementById('placeholder-box');
+            
             if (val && val.trim() !== "") {
-                img.src = val; img.classList.add('visible'); placeholder.style.display = 'none';
+                // Check if it's an IndexedDB reference
+                if (val.startsWith('indexeddb:')) {
+                    const imageKey = val.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            img.src = blobUrl;
+                            img.classList.add('visible');
+                            placeholder.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Failed to load preview image:', error);
+                        img.classList.remove('visible');
+                        placeholder.style.display = 'flex';
+                    }
+                } else {
+                    // Regular URL
+                    img.src = val;
+                    img.classList.add('visible');
+                    placeholder.style.display = 'none';
+                }
             } else {
-                img.classList.remove('visible'); placeholder.style.display = 'flex';
+                img.classList.remove('visible');
+                placeholder.style.display = 'flex';
             }
         }
 
         function closePanel() { document.getElementById('edit-panel').classList.remove('active'); isCreatingNew = false; }
         
-        function handleUpload(input) {
+        async function handleUpload(input) {
             const file = input.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => { document.getElementById('inp-img').value = reader.result; autoSave(); }
-            if (file) reader.readAsDataURL(file);
+            if (!file) return;
+            
+            // Store in IndexedDB
+            const imageKey = `universe_${activeId || Date.now()}_${Date.now()}`;
+            try {
+                await storeImage(imageKey, file);
+                document.getElementById('inp-img').value = `indexeddb:${imageKey}`;
+                await autoSave();
+                
+                // Update preview with blob URL
+                const blobUrl = URL.createObjectURL(file);
+                document.getElementById('prev-img').src = blobUrl;
+            } catch (error) {
+                console.error('Failed to store image:', error);
+                alert('Failed to store image. Please try a smaller file or use an image URL instead.');
+            }
         }
 
         function deleteUniverse() {
@@ -344,7 +492,11 @@
             if (file) reader.readAsText(file);
         }
 
-        window.onload = renderGrid;
+        // Initialize IndexedDB and render on load
+        window.onload = async () => {
+            await initImageDB();
+            renderGrid();
+        };
     </script>
 </body>
 </html>
