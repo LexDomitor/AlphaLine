@@ -472,9 +472,30 @@
 
         function exportSingle() {
             const u = universes.find(x => x.id === activeId);
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(u, null, 2));
+            
+            // Load full universe data from localStorage (includes glossary, characters, etc.)
+            const storageKey = `alphaline_universe_${activeId}`;
+            const fullData = localStorage.getItem(storageKey);
+            
+            let exportData = u;
+            if (fullData) {
+                try {
+                    const parsed = JSON.parse(fullData);
+                    // Merge universe metadata with full data
+                    exportData = {
+                        ...u,
+                        ...parsed
+                    };
+                } catch (e) {
+                    console.error('Failed to load full universe data:', e);
+                }
+            }
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
             const a = document.createElement('a');
-            a.setAttribute("href", dataStr); a.setAttribute("download", u.name + ".json"); a.click();
+            a.setAttribute("href", dataStr); 
+            a.setAttribute("download", u.name + ".json"); 
+            a.click();
         }
 
         function importCanon(input) {
@@ -483,11 +504,42 @@
             reader.onload = (e) => {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    imported.id = Date.now();
-                    universes.push(imported);
+                    const newId = Date.now();
+                    imported.id = newId;
+                    
+                    // Store metadata in universes list
+                    const metadata = {
+                        id: newId,
+                        series: imported.series || "",
+                        name: imported.name || "Untitled",
+                        synopsis: imported.synopsis || "",
+                        image: imported.image || "",
+                        created: imported.created || new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase(),
+                        lastEdited: imported.lastEdited || new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase()
+                    };
+                    universes.push(metadata);
                     localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+                    
+                    // Store full universe data (including glossary, characters, plots, etc.)
+                    const storageKey = `alphaline_universe_${newId}`;
+                    const fullData = {
+                        years: imported.years || [],
+                        plots: imported.plots || {},
+                        characters: imported.characters || [],
+                        glossary: imported.glossary || [],
+                        terminology: imported.terminology || {
+                            timelineUnit: "Episode",
+                            subunitPlot: "Plot",
+                            subunitEvent: "Event"
+                        }
+                    };
+                    localStorage.setItem(storageKey, JSON.stringify(fullData));
+                    
                     renderGrid();
-                } catch (err) { alert("Invalid File."); }
+                } catch (err) { 
+                    console.error('Import failed:', err);
+                    alert("Invalid File."); 
+                }
             };
             if (file) reader.readAsText(file);
         }
