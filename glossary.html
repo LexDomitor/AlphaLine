@@ -328,6 +328,15 @@
             margin-bottom: 20px;
         }
         
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-col-half {
+            flex: 1;
+        }
+        
         .form-label {
             display: block;
             font-size: 0.6rem;
@@ -359,16 +368,26 @@
         
         .form-textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 80px;
             line-height: 1.6;
         }
         
+        .form-input[type="color"] {
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+        
         .form-color-preview {
-            width: 40px;
-            height: 40px;
+            width: 100%;
+            height: 42px;
             border: 1px solid #333;
-            margin-top: 8px;
             cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .form-color-preview:hover {
+            border-color: #555;
         }
         
         .form-image-preview {
@@ -393,6 +412,26 @@
             color: #333;
             font-size: 0.6rem;
             text-transform: uppercase;
+        }
+        
+        .upload-btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+        
+        .upload-btn:hover {
+            background: #222;
+            color: #fff;
         }
         
         .conflict-warning {
@@ -498,29 +537,22 @@
                 <input type="text" id="form-aliases" class="form-input" placeholder="e.g., The Sword of Kings, Excalibur" oninput="autoSaveEntry()">
             </div>
             
-            <div class="form-group">
-                <label class="form-label">Type</label>
-                <select id="form-type" class="form-select" onchange="autoSaveEntry()">
-                    <option value="Item">Item</option>
-                    <option value="Nature">Nature</option>
-                    <option value="Land">Land</option>
-                    <option value="Culture">Culture</option>
-                    <option value="Technology">Technology</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Color</label>
-                <input type="color" id="form-color" class="form-input" value="#888888" oninput="updateColorPreview(); autoSaveEntry()">
-                <div id="form-color-preview" class="form-color-preview"></div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Image URL</label>
-                <input type="text" id="form-image" class="form-input" placeholder="https://..." oninput="updateImagePreview(); autoSaveEntry()">
-                <div class="form-image-preview">
-                    <img id="form-img-preview" style="display: none;">
-                    <div id="form-img-placeholder" class="form-image-placeholder">No Image</div>
+            <div class="form-row">
+                <div class="form-col-half">
+                    <label class="form-label">Type</label>
+                    <select id="form-type" class="form-select" onchange="autoSaveEntry()">
+                        <option value="Item">Item</option>
+                        <option value="Nature">Nature</option>
+                        <option value="Land">Land</option>
+                        <option value="Culture">Culture</option>
+                        <option value="Technology">Technology</option>
+                    </select>
+                </div>
+                
+                <div class="form-col-half">
+                    <label class="form-label">Color</label>
+                    <input type="color" id="form-color" class="form-input" value="#888888" oninput="updateColorPreview(); autoSaveEntry()">
+                    <div id="form-color-preview" class="form-color-preview" onclick="document.getElementById('form-color').click()"></div>
                 </div>
             </div>
             
@@ -528,10 +560,75 @@
                 <label class="form-label">Description</label>
                 <textarea id="form-description" class="form-textarea" placeholder="Enter description..." oninput="autoSaveEntry()"></textarea>
             </div>
+            
+            <div class="form-group">
+                <label class="form-label">Image</label>
+                <button class="upload-btn" onclick="document.getElementById('image-upload').click()">Upload Local Image</button>
+                <input type="file" id="image-upload" hidden accept="image/*" onchange="handleImageUpload(this)">
+                <input type="text" id="form-image" class="form-input" placeholder="Or paste image URL" oninput="updateImagePreview(); autoSaveEntry()" style="margin-top: 8px;">
+                <div class="form-image-preview">
+                    <img id="form-img-preview" style="display: none;">
+                    <div id="form-img-placeholder" class="form-image-placeholder">No Image</div>
+                </div>
+            </div>
         </div>
     </div>
     
     <script>
+        // IndexedDB for image storage
+        let imageDB = null;
+        const DB_NAME = 'alphaline_images';
+        const DB_VERSION = 1;
+        const IMAGE_STORE = 'images';
+
+        // Initialize IndexedDB
+        function initImageDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    imageDB = request.result;
+                    resolve(imageDB);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(IMAGE_STORE)) {
+                        db.createObjectStore(IMAGE_STORE);
+                    }
+                };
+            });
+        }
+
+        // Store image in IndexedDB
+        async function storeImage(key, blob) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readwrite');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.put(blob, key);
+                
+                request.onsuccess = () => resolve(key);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Retrieve image from IndexedDB
+        async function getImage(key) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readonly');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.get(key);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
         let universeId = null;
         let glossaryEntries = [];
         let selectedEntryId = null;
@@ -623,7 +720,7 @@
         }
         
         // Show entry detail
-        function showEntryDetail(id) {
+        async function showEntryDetail(id) {
             const entry = glossaryEntries.find(e => e.id === id);
             if (!entry) return;
             
@@ -634,9 +731,27 @@
             const img = document.getElementById('detail-img');
             const imgPlaceholder = document.getElementById('detail-img-placeholder');
             if (entry.image) {
-                img.src = entry.image;
-                img.style.display = 'block';
-                imgPlaceholder.style.display = 'none';
+                // Check if it's an IndexedDB reference
+                if (entry.image.startsWith('indexeddb:')) {
+                    const imageKey = entry.image.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            img.src = blobUrl;
+                            img.style.display = 'block';
+                            imgPlaceholder.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Failed to load image:', error);
+                        img.style.display = 'none';
+                        imgPlaceholder.style.display = 'block';
+                    }
+                } else {
+                    img.src = entry.image;
+                    img.style.display = 'block';
+                    imgPlaceholder.style.display = 'none';
+                }
             } else {
                 img.style.display = 'none';
                 imgPlaceholder.style.display = 'block';
@@ -825,18 +940,60 @@
         }
         
         // Update image preview
-        function updateImagePreview() {
+        async function updateImagePreview() {
             const url = document.getElementById('form-image').value.trim();
             const img = document.getElementById('form-img-preview');
             const placeholder = document.getElementById('form-img-placeholder');
             
             if (url) {
-                img.src = url;
-                img.style.display = 'block';
-                placeholder.style.display = 'none';
+                // Check if it's an IndexedDB reference
+                if (url.startsWith('indexeddb:')) {
+                    const imageKey = url.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            img.src = blobUrl;
+                            img.style.display = 'block';
+                            placeholder.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Failed to load image:', error);
+                        img.style.display = 'none';
+                        placeholder.style.display = 'flex';
+                    }
+                } else {
+                    // Regular URL
+                    img.src = url;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
             } else {
                 img.style.display = 'none';
                 placeholder.style.display = 'flex';
+            }
+        }
+        
+        // Handle image upload
+        async function handleImageUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // Store in IndexedDB
+            const imageKey = `glossary_${editingEntryId || Date.now()}_${Date.now()}`;
+            try {
+                await storeImage(imageKey, file);
+                document.getElementById('form-image').value = `indexeddb:${imageKey}`;
+                autoSaveEntry();
+                
+                // Update preview with blob URL
+                const blobUrl = URL.createObjectURL(file);
+                document.getElementById('form-img-preview').src = blobUrl;
+                document.getElementById('form-img-preview').style.display = 'block';
+                document.getElementById('form-img-placeholder').style.display = 'none';
+            } catch (error) {
+                console.error('Failed to store image:', error);
+                alert('Failed to store image. Please try a smaller file or use an image URL instead.');
             }
         }
         
@@ -846,7 +1003,8 @@
         }
         
         // Initialize
-        window.onload = () => {
+        window.onload = async () => {
+            await initImageDB();
             loadGlossary();
             updateColorPreview();
         };
