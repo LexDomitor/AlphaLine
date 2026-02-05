@@ -2660,11 +2660,30 @@
             // Apply both character and glossary highlighting
             const highlighted = highlightCharacterNames(text);
             
-            // Only update if there are highlights
-            if (highlighted !== text && (highlighted.includes('char-name-highlight') || highlighted.includes('glossary-term-highlight'))) {
+            // Always update if highlighting changed
+            if (highlighted !== text) {
                 el.innerHTML = highlighted;
                 attachCharacterNameHandlers(); // This now also attaches glossary handlers
             }
+        }
+        
+        function processCharacterNamesInEvent(pIdx, eIdx, col) {
+            if (!selectedYear) return;
+            
+            const event = plotsByYear[selectedYear][col][pIdx].events[eIdx];
+            if (!event) return;
+            
+            // Find all event inputs and update the matching one
+            const eventInputs = document.querySelectorAll('.event-input');
+            eventInputs.forEach(eventNode => {
+                const text = eventNode.innerText || eventNode.textContent || "";
+                const highlighted = highlightCharacterNames(text);
+                
+                if (highlighted !== text) {
+                    eventNode.innerHTML = highlighted;
+                    attachCharacterNameHandlers();
+                }
+            });
         }
 
         function handleEpisodeTitle(el) {
@@ -4149,7 +4168,7 @@
         // Character preview tooltip
         let characterPreviewTimeout;
         
-        function showCharacterPreview(charId, event) {
+        async function showCharacterPreview(charId, event) {
             clearTimeout(characterPreviewTimeout);
             
             const char = characters.find(c => c.id === charId);
@@ -4170,8 +4189,40 @@
                 bioText = bioText.substring(0, 150) + '...';
             }
             
+            // Build avatar image
+            let avatarHTML = '';
+            if (char.image) {
+                let imageSrc = char.image;
+                
+                // Check if IndexedDB reference
+                if (char.image.startsWith('indexeddb:')) {
+                    const imageKey = char.image.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            imageSrc = URL.createObjectURL(blob);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load character avatar:', error);
+                    }
+                }
+                
+                avatarHTML = `
+                    <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid ${char.color || '#888'}; margin-bottom: 10px; background: #000;">
+                        <img src="${imageSrc}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                `;
+            } else {
+                avatarHTML = `
+                    <div style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid ${char.color || '#888'}; margin-bottom: 10px; background: #000; display: flex; align-items: center; justify-content: center; color: #333; font-size: 0.6rem;">
+                        No Image
+                    </div>
+                `;
+            }
+            
             const tooltip = document.getElementById('character-preview-tooltip');
             tooltip.innerHTML = `
+                ${avatarHTML}
                 <div class="preview-tooltip-header">${char.name}</div>
                 <div class="preview-tooltip-subtext">${char.status || 'Unknown'}</div>
                 <div class="preview-tooltip-bio">${bioText}</div>
@@ -4418,12 +4469,9 @@
             glossaryPreviewTimeout = setTimeout(async () => {
                 const tooltip = document.getElementById('glossary-preview-tooltip');
                 
-                // Build image HTML
-                let imageHTML = '';
+                // Load image if needed
+                let imageSrc = null;
                 if (entry.image) {
-                    let imageSrc = entry.image;
-                    
-                    // Check if IndexedDB reference
                     if (entry.image.startsWith('indexeddb:')) {
                         const imageKey = entry.image.replace('indexeddb:', '');
                         try {
@@ -4434,17 +4482,23 @@
                         } catch (error) {
                             console.error('Failed to load glossary image:', error);
                         }
+                    } else {
+                        imageSrc = entry.image;
                     }
-                    
-                    imageHTML = `
-                        <div class="glossary-preview-image">
-                            <img src="${imageSrc}">
+                }
+                
+                // Build avatar HTML (circular like character)
+                let avatarHTML = '';
+                if (imageSrc) {
+                    avatarHTML = `
+                        <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid ${entry.color || '#888'}; margin-bottom: 10px; background: #000;">
+                            <img src="${imageSrc}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                     `;
                 } else {
-                    imageHTML = `
-                        <div class="glossary-preview-image">
-                            <div class="glossary-preview-image-placeholder">No Image</div>
+                    avatarHTML = `
+                        <div style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid ${entry.color || '#888'}; margin-bottom: 10px; background: #000; display: flex; align-items: center; justify-content: center; color: #333; font-size: 0.6rem;">
+                            No Image
                         </div>
                     `;
                 }
@@ -4454,7 +4508,7 @@
                 const truncated = description.length > 150 ? description.substring(0, 150) + '...' : description;
                 
                 tooltip.innerHTML = `
-                    ${imageHTML}
+                    ${avatarHTML}
                     <div class="glossary-preview-name" style="color: ${entry.color || '#fff'}">${entry.name}</div>
                     <div class="glossary-preview-type">${entry.type || 'Item'}</div>
                     <div class="glossary-preview-description">${truncated}</div>
