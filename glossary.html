@@ -949,8 +949,8 @@
             
             if (hasConflict) {
                 warningEl.classList.add('visible');
-                alert('❌ Entry NOT saved!\n\nName conflict detected: This name or alias is already in use by another entry. Please choose a different name or aliases.');
-                return; // Don't save
+                // Don't save, don't close form, no alert needed (red warning is visible)
+                return;
             } else {
                 warningEl.classList.remove('visible');
             }
@@ -990,7 +990,11 @@
             }
             
             formHasUnsavedChanges = false;
-            alert('✅ Entry saved successfully!');
+            
+            // Close form on successful save
+            const overlay = document.getElementById('form-overlay');
+            overlay.classList.remove('active');
+            editingEntryId = null;
         }
         
         // Old auto-save function - now just for internal use during imports
