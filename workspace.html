@@ -538,13 +538,15 @@
 
         .event-node.flipped .event-image-container { border-left: none; border-right: 2px solid var(--border); }
         .event-image-container img { 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             max-width: 100%; 
             max-height: 100%; 
             width: auto;
             height: auto;
             object-fit: contain; 
-            display: block;
-            margin: auto;
             transition: 0.3s; 
         }
         .event-image-container:hover img { opacity: 0.8; }
@@ -2049,7 +2051,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 150;
+            z-index: 250;
             padding: 2rem;
             box-sizing: border-box;
         }
@@ -2063,7 +2065,7 @@
             border: 2px solid var(--border);
             padding: 1.5rem;
             max-width: 90vw;
-            max-height: 85vh;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
@@ -2107,15 +2109,26 @@
         }
         
         .atlas-map-container {
-            width: 100%;
-            max-width: 600px;
-            aspect-ratio: 1;
-            max-height: calc(85vh - 250px);
+            width: 600px;
+            height: 600px;
+            aspect-ratio: 1/1;
+            max-width: min(600px, 80vw);
+            max-height: min(600px, 80vh);
             background: #000;
             border: 2px solid var(--border);
             position: relative;
             margin: 0 auto;
             flex-shrink: 0;
+            overflow: hidden;
+            cursor: zoom-in;
+        }
+        
+        .atlas-map-container.zoomed {
+            cursor: zoom-out;
+        }
+        
+        .atlas-map-container.waypoint-mode {
+            cursor: crosshair;
         }
         
         .atlas-map-inner-border {
@@ -2126,7 +2139,7 @@
             bottom: 8px;
             border: 1px solid var(--border);
             pointer-events: none;
-            z-index: 2;
+            z-index: 3;
         }
         
         .atlas-map-display {
@@ -2137,6 +2150,14 @@
             justify-content: center;
             overflow: hidden;
             position: relative;
+        }
+        
+        .atlas-map-viewport {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-origin: center center;
+            transition: transform 0.3s ease;
         }
         
         .atlas-placeholder {
@@ -2154,12 +2175,44 @@
         }
         
         .atlas-map-image {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             display: block;
+            user-select: none;
+        }
+        
+        .atlas-waypoint {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            margin-left: -12px;
+            margin-top: -12px;
+            background: #ff4444;
+            border: 2px solid white;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            cursor: pointer;
+            z-index: 2;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        
+        .atlas-waypoint:hover {
+            transform: rotate(-45deg) scale(1.2);
+            background: #ff6666;
+        }
+        
+        .atlas-waypoint::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
         }
         
         .atlas-grid-overlay {
@@ -2219,6 +2272,12 @@
         .atlas-btn:hover {
             background: #222;
             color: white;
+        }
+        
+        .atlas-btn.active {
+            background: #333;
+            color: white;
+            border-color: #555;
         }
         
         .atlas-grid-control {
@@ -2626,15 +2685,18 @@
             </div>
             
             <div class="atlas-content">
-                <div class="atlas-map-container" id="atlas-map-container">
+                <div class="atlas-map-container" id="atlas-map-container" onclick="handleAtlasClick(event)" onmousemove="handleAtlasMouseMove(event)" onwheel="handleAtlasZoom(event)">
                     <div class="atlas-map-inner-border"></div>
-                    <div id="atlas-grid-overlay" class="atlas-grid-overlay"></div>
-                    <div id="atlas-map-display" class="atlas-map-display">
-                        <div id="atlas-placeholder" class="atlas-placeholder">
-                            No map uploaded
-                            <div class="atlas-placeholder-sub">Recommended: Square images<br>(512×512, 1024×1024, 2048×2048)</div>
+                    <div class="atlas-map-display" id="atlas-map-display">
+                        <div class="atlas-map-viewport" id="atlas-map-viewport">
+                            <div id="atlas-grid-overlay" class="atlas-grid-overlay"></div>
+                            <div id="atlas-waypoints-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                            <div id="atlas-placeholder" class="atlas-placeholder">
+                                No map uploaded
+                                <div class="atlas-placeholder-sub">Recommended: Square images<br>(512×512, 1024×1024, 2048×2048)</div>
+                            </div>
+                            <img id="atlas-map-image" class="atlas-map-image" style="display: none;">
                         </div>
-                        <img id="atlas-map-image" class="atlas-map-image" style="display: none;">
                     </div>
                 </div>
                 
@@ -2642,7 +2704,7 @@
                     <div class="atlas-controls-row">
                         <input type="file" id="atlas-upload" hidden accept="image/*" onchange="handleAtlasUpload(this)">
                         <button class="atlas-btn" onclick="document.getElementById('atlas-upload').click()">Upload New Image</button>
-                        <button class="atlas-btn" onclick="addWaypoint()">+ New Waypoint</button>
+                        <button class="atlas-btn" id="waypoint-mode-btn" onclick="toggleWaypointMode()">+ New Waypoint</button>
                         <button class="atlas-btn" onclick="toggleGridControl()">Grid Scale</button>
                         <button class="atlas-btn" onclick="resetAtlasView()">Reset View</button>
                     </div>
@@ -4899,6 +4961,10 @@
         // --- ATLAS SYSTEM ---
         let atlasImage = null;
         let atlasGridScale = 0;
+        let atlasWaypoints = [];
+        let atlasZoom = 1;
+        let atlasTransform = { x: 0, y: 0 };
+        let waypointMode = false;
         
         function openAtlas() {
             const overlay = document.getElementById('atlas-overlay');
@@ -4911,6 +4977,8 @@
         function closeAtlas() {
             const overlay = document.getElementById('atlas-overlay');
             overlay.classList.remove('active');
+            waypointMode = false;
+            updateWaypointModeUI();
         }
         
         async function loadAtlasImage() {
@@ -4924,6 +4992,7 @@
                     const data = JSON.parse(saved);
                     atlasImage = data.atlasImage || null;
                     atlasGridScale = data.atlasGridScale || 0;
+                    atlasWaypoints = data.atlasWaypoints || [];
                     
                     const imgElement = document.getElementById('atlas-map-image');
                     const placeholder = document.getElementById('atlas-placeholder');
@@ -4956,9 +5025,12 @@
                         placeholder.style.display = 'block';
                     }
                     
-                    // Update grid slider
+                    // Update grid slider and grid
                     updateGridSliderUI();
                     updateAtlasGrid();
+                    
+                    // Render waypoints
+                    renderWaypoints();
                 } catch (error) {
                     console.error('Failed to load atlas data:', error);
                 }
@@ -4999,13 +5071,136 @@
         }
         
         function resetAtlasView() {
-            // Reload the image to reset view
-            loadAtlasImage();
+            atlasZoom = 1;
+            atlasTransform = { x: 0, y: 0 };
+            const viewport = document.getElementById('atlas-map-viewport');
+            viewport.style.transform = 'scale(1) translate(0px, 0px)';
+            
+            const container = document.getElementById('atlas-map-container');
+            container.classList.remove('zoomed');
         }
         
-        function addWaypoint() {
-            // Placeholder for future waypoint functionality
-            alert('Waypoint functionality coming soon!');
+        function toggleWaypointMode() {
+            waypointMode = !waypointMode;
+            updateWaypointModeUI();
+        }
+        
+        function updateWaypointModeUI() {
+            const btn = document.getElementById('waypoint-mode-btn');
+            const container = document.getElementById('atlas-map-container');
+            
+            if (waypointMode) {
+                btn.classList.add('active');
+                container.classList.add('waypoint-mode');
+            } else {
+                btn.classList.remove('active');
+                container.classList.remove('waypoint-mode');
+            }
+        }
+        
+        function handleAtlasClick(event) {
+            if (!waypointMode) return;
+            
+            const container = document.getElementById('atlas-map-container');
+            const rect = container.getBoundingClientRect();
+            
+            // Get click position relative to container (0-1 range)
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+            
+            // Check if clicking on existing waypoint
+            const clickedWaypoint = atlasWaypoints.findIndex(wp => {
+                const dx = Math.abs(wp.x - x);
+                const dy = Math.abs(wp.y - y);
+                return dx < 0.03 && dy < 0.03; // ~20px radius at 600px size
+            });
+            
+            if (clickedWaypoint >= 0) {
+                // Delete waypoint
+                if (confirm('Delete this waypoint?')) {
+                    atlasWaypoints.splice(clickedWaypoint, 1);
+                    saveAtlasWaypoints();
+                    renderWaypoints();
+                }
+            } else {
+                // Add new waypoint
+                atlasWaypoints.push({ x, y });
+                saveAtlasWaypoints();
+                renderWaypoints();
+            }
+        }
+        
+        function handleAtlasMouseMove(event) {
+            if (waypointMode) return;
+            
+            // Future: Could show zoom preview on hover
+        }
+        
+        function handleAtlasZoom(event) {
+            if (waypointMode) return;
+            
+            event.preventDefault();
+            
+            const container = document.getElementById('atlas-map-container');
+            const rect = container.getBoundingClientRect();
+            const viewport = document.getElementById('atlas-map-viewport');
+            
+            // Get mouse position relative to container
+            const mouseX = (event.clientX - rect.left) / rect.width;
+            const mouseY = (event.clientY - rect.top) / rect.height;
+            
+            // Zoom in/out
+            const zoomDelta = event.deltaY > 0 ? 0.9 : 1.1;
+            const newZoom = Math.max(1, Math.min(4, atlasZoom * zoomDelta));
+            
+            if (newZoom !== atlasZoom) {
+                // Calculate new transform to zoom toward mouse
+                const zoomChange = newZoom / atlasZoom;
+                
+                // Adjust pan to zoom toward cursor
+                atlasTransform.x = mouseX - (mouseX - atlasTransform.x) * zoomChange;
+                atlasTransform.y = mouseY - (mouseY - atlasTransform.y) * zoomChange;
+                
+                atlasZoom = newZoom;
+                
+                // Apply transform
+                const translateX = (atlasTransform.x - 0.5) * rect.width * (1 - 1/atlasZoom);
+                const translateY = (atlasTransform.y - 0.5) * rect.height * (1 - 1/atlasZoom);
+                
+                viewport.style.transform = `scale(${atlasZoom}) translate(${translateX}px, ${translateY}px)`;
+                
+                if (atlasZoom > 1) {
+                    container.classList.add('zoomed');
+                } else {
+                    container.classList.remove('zoomed');
+                }
+            }
+        }
+        
+        function renderWaypoints() {
+            const container = document.getElementById('atlas-waypoints-container');
+            container.innerHTML = '';
+            
+            atlasWaypoints.forEach((wp, idx) => {
+                const marker = document.createElement('div');
+                marker.className = 'atlas-waypoint';
+                marker.style.left = (wp.x * 100) + '%';
+                marker.style.top = (wp.y * 100) + '%';
+                container.appendChild(marker);
+            });
+        }
+        
+        function saveAtlasWaypoints() {
+            if (!universeId) return;
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            const saved = localStorage.getItem(storageKey);
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                data.atlasWaypoints = atlasWaypoints;
+                localStorage.setItem(storageKey, JSON.stringify(data));
+            }
         }
         
         function toggleGridControl() {
@@ -5052,9 +5247,6 @@
             overlay.innerHTML = '';
             
             if (atlasGridScale === 0) return;
-            
-            const container = document.getElementById('atlas-map-container');
-            const containerRect = container.getBoundingClientRect();
             
             // Create vertical lines
             for (let i = 1; i <= atlasGridScale; i++) {
